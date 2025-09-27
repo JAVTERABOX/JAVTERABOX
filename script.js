@@ -1,3 +1,4 @@
+// Spreadsheet ID yang benar
 const SHEET_URL = 'https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1';
 
 async function fetchPosts() {
@@ -9,6 +10,8 @@ async function fetchPosts() {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
     const data = await response.json();
+
+    console.log('Data dari OpenSheet:', data); // Debug: tampilkan JSON di console
 
     // Filter hanya baris yang ada trigger FIX
     const filtered = data.filter(r => r.M && r.M.toUpperCase().startsWith('FIX'));
@@ -30,12 +33,11 @@ function renderPosts(posts) {
   container.innerHTML = '';
 
   posts.forEach(post => {
-    // Gunakan fallback jika kolom kosong
     const kode = post.F || 'Unknown';
     const actres = post.G || '-';
     const actor = post.H || '-';
     const label = post.I || '-';
-    const tags = post.J ? post.J.split(',').map(t => `<span>${t.trim()}</span>`).join('') : '';
+    const tags = post.J ? post.J.split(',').map(t => `<span class="tag">${t.trim()}</span>`).join(' ') : '';
     const image = post.K || '';
     const download = post.A || '#';
 
@@ -58,6 +60,5 @@ function renderPosts(posts) {
   });
 }
 
-// Jalankan fetch
+// Jalankan fetch saat halaman load
 fetchPosts();
-
