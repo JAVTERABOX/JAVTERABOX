@@ -60,3 +60,4 @@ function renderPosts(posts) {
 
 // Jalankan fetch
 fetchPosts();
+
