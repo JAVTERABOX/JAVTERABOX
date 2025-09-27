@@ -11,9 +11,9 @@ async function fetchPosts() {
     const data = await response.json();
     console.log('Data OpenSheet:', data); // debug
 
-    // Filter FIX1 sampai FIX4 dari kolom undefined
+    // Filter FIX1 sampai FIX4 dari kolom "undefined"
     const filtered = data.filter(r => {
-      const trigger = r.M || r.Trigger || r.undefined;
+      const trigger = r.M || r.Trigger || r["undefined"];
       return trigger && ['FIX1','FIX2','FIX3','FIX4'].includes(trigger.toUpperCase());
     });
 
@@ -61,4 +61,5 @@ function renderPosts(posts) {
   });
 }
 
+// Jalankan fetch
 fetchPosts();
