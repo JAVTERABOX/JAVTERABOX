@@ -1,86 +1,101 @@
-const SHEET_URL = 'https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1';
-const POSTS_PER_PAGE = 20;
-let allPosts = [];
+const OPEN_SHEET='https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1';
+const PER_PAGE=20,MAX_PAGE_BUTTONS=5,PLACEHOLDER='https://via.placeholder.com/640x360?text=No+Image';
+let fullPosts=[],filteredPosts=[],currentPage=1;
 
-async function fetchPosts(){
-  const container = document.getElementById('posts');
-  container.innerHTML = '<p>Memuat data...</p>';
-  try{
-    const response = await fetch(SHEET_URL);
-    if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = await response.json();
-    // Filter & reverse
-    allPosts = data.filter(r => (r['undefined']||'').toUpperCase().startsWith('FIX')).reverse();
-    renderPage(1);
-  }catch(err){
-    container.innerHTML = `<p style="color:red;">Gagal memuat data.<br>${err}</p>`;
+function el(id){return document.getElementById(id)}
+function safeImg(src){return src||PLACEHOLDER;}
+
+async function init(){
+  const resp=await fetch(OPEN_SHEET);const json=await resp.json();
+  const raw=json.filter(r=>(r['undefined']||r.Trigger||'').toString().toUpperCase().startsWith('FIX'));
+  fullPosts=raw.reverse();filteredPosts=fullPosts.slice();renderList(1);setTimeout(showPopupIfNeeded,1200)
+  handleHash();
+}
+
+function renderList(page=1){
+  currentPage=Math.max(1,Math.floor(page));
+  const total=filteredPosts.length,totalPages=Math.max(1,Math.ceil(total/PER_PAGE));
+  if(currentPage>totalPages) currentPage=totalPages;
+  const start=(currentPage-1)*PER_PAGE,pageItems=filteredPosts.slice(start,start+PER_PAGE);
+  if(pageItems.length===0){el('grid').innerHTML='<div class="msg">No results.</div>';el('pagination').innerHTML='';return;}
+  el('grid').innerHTML=pageItems.map(p=>{
+    const img=safeImg(p['LINK FOTO']);const code=(p.CODE||'').trim();const actress=(p.Actress||'').trim();
+    return `<div class="card" onclick="openDetail('${escapeJS(code)}')">
+      <div class="thumb"><img src="${img}" onerror="this.src='${PLACEHOLDER}'" alt="${escapeHTML(code+' '+actress)}"/></div>
+      <div class="title">${escapeHTML(code+' '+actress)}</div>
+    </div>`;
+  }).join('');
+  renderPagination(totalPages);el('listView').classList.remove('hidden');el('detailView').classList.add('hidden');window.scrollTo({top:0,behavior:'smooth'})
+}
+
+function renderPagination(totalPages){
+  const c=el('pagination');if(totalPages<=1){c.innerHTML='';return;}
+  let s=currentPage-Math.floor(MAX_PAGE_BUTTONS/2);if(s<1)s=1;
+  let e=s+MAX_PAGE_BUTTONS-1;if(e>totalPages){e=totalPages;s=Math.max(1,e-MAX_PAGE_BUTTONS+1);}
+  let html='';if(currentPage>1)html+=`<button class="pg-btn" onclick="renderList(${currentPage-1})">&lt;</button>`;
+  for(let i=s;i<=e;i++){html+=`<button class="pg-btn ${i===currentPage?'active':''}" onclick="renderList(${i})">${i}</button>`}
+  if(currentPage<totalPages)html+=`<button class="pg-btn" onclick="renderList(${currentPage+1})">&gt;</button>`;
+  c.innerHTML=html
+}
+
+function doSearch(){
+  const q=(el('search').value||'').trim().toLowerCase();const top=el('topMsg');top.classList.add('hidden');if(!q){filteredPosts=fullPosts.slice();renderList(1);return;}
+  let res=fullPosts.filter(p=>((p.CODE||'')+(p.Actress||'')+(p.Tags||'')).toLowerCase().includes(q));
+  if(res.length===0){const tokens=q.split(/\s+/).filter(Boolean);res=fullPosts.filter(p=>{const hay=((p.CODE||'')+' '+(p.Actress||'')+' '+(p.Tags||'')).toLowerCase();return tokens.every(t=>hay.includes(t))})}
+  if(res.length===0){filteredPosts=fullPosts.slice();top.textContent=`No exact matches for "${q}", showing latest.`;top.classList.remove('hidden');renderList(1);return;}
+  filteredPosts=res.slice();renderList(1)
+}
+
+function openDetail(code){
+  const post=fullPosts.find(p=>(p.CODE||'').toUpperCase()===code.toUpperCase());if(!post)return;
+  window.location.hash=code;
+  el('detailView').innerHTML=buildDetailHTML(post);el('listView').classList.add('hidden');el('detailView').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})
+}
+
+function buildDetailHTML(p){
+  const code=p.CODE||'',actress=p.Actress||'',tags=(p.Tags||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const img=safeImg(p['LINK FOTO']);const link=escapeAttr(p.LINK||'#');
+  const tagsHTML=tags.map(t=>`<span onclick="searchTag('${escapeJS(t)}')">${escapeHTML(t)}</span>`).join(' ');
+  const actressHTML=(actress||'').split(',').map(a=>`<span onclick="searchTag('${escapeJS(a.trim())}')">${escapeHTML(a.trim())}</span>`).join(' ');
+  const related=fullPosts.filter(x=>(x.CODE||'')!==code).slice(0,6);
+  const relatedHTML=related.map(r=>`<div class="related-item" onclick="openDetail('${escapeJS(r.CODE)}')">
+      <div class="thumb"><img src="${safeImg(r['LINK FOTO'])}" onerror="this.src='${PLACEHOLDER}'"></div>
+      <div class="r-title">${escapeHTML(r.CODE+' '+(r.Actress||''))}</div>
+    </div>`).join('');
+  return `<div class="detail-wrap">
+    <div class="breadcrumb"><a href="javascript:resetToHome()">Home</a> › ${escapeHTML(actress)} › ${escapeHTML(code)}</div>
+    <h2 class="detail-title">${escapeHTML(code+' '+actress)}</h2>
+    <div style="text-align:center"><div class="poster-wrap">
+      <img src="${img}" onerror="this.src='${PLACEHOLDER}'"><div class="play-overlay" onclick="window.open('${link}','_blank')"></div>
+    </div></div>
+    <div class="download-center"><a class="download-btn" href="${link}" target="_blank">Watch and Download</a></div>
+    <div style="text-align:center;margin-top:10px;color:var(--muted)">
+      <div><strong>Actress:</strong> ${actressHTML}</div>
+      <div style="margin-top:8px"><strong>Tags:</strong> ${tagsHTML||'—'}</div>
+    </div>
+    <a class="home-btn" href="javascript:resetToHome()">Home</a>
+    <div class="related-section"><h3 class="related-title">Related Posts</h3><div class="related-grid">${relatedHTML}</div></div>
+  </div>`;
+}
+
+function searchTag(tag){el('search').value=tag;doSearch()}
+function resetToHome(){el('search').value='';el('topMsg').classList.add('hidden');filteredPosts=fullPosts.slice();renderList(1);window.location.hash='';}
+function showPopupIfNeeded(){if(localStorage.getItem('popupClosed'))return;el('popup').classList.remove('hidden')}
+
+function handleHash(){
+  if(window.location.hash){
+    const code=window.location.hash.replace('#','').toUpperCase();
+    const post=fullPosts.find(p=>(p.CODE||'').toUpperCase()===code);
+    if(post) openDetail(code);
   }
 }
 
-function renderPage(page){
-  const container = document.getElementById('posts');
-  container.innerHTML = '';
-  const totalPages = Math.ceil(allPosts.length/POSTS_PER_PAGE);
-  if(page>totalPages) page=totalPages;
+el('popupClose').addEventListener('click',()=>{el('popup').classList.add('hidden');localStorage.setItem('popupClosed','1')})
+el('searchBtn').addEventListener('click',doSearch)
+el('search').addEventListener('keypress',e=>{if(e.key==='Enter')doSearch()})
+window.addEventListener('hashchange',handleHash);
 
-  const start = (page-1)*POSTS_PER_PAGE;
-  const end = start+POSTS_PER_PAGE;
-  const pagePosts = allPosts.slice(start,end);
-
-  pagePosts.forEach(post=>{
-    const kode = post.CODE||'Unknown';
-    const actres = post.Actress||'-';
-    const image = post["LINK FOTO"]||'';
-    const download = post.LINK||'#';
-
-    const div = document.createElement('div');
-    div.classList.add('cover');
-    div.innerHTML = `
-      <a href="detail.html?code=${kode}" class="cover-wrapper">
-        <img src="${image}" alt="${kode}">
-        <div class="play-button">&#9658;</div>
-        <div class="overlay">${kode} ${actres}</div>
-      </a>
-    `;
-    container.appendChild(div);
-  });
-
-  // Pagination
-  const pagination = document.getElementById('pagination');
-  pagination.innerHTML = '';
-  for(let i=1;i<=totalPages;i++){
-    const a = document.createElement('a');
-    a.href="#";
-    a.textContent=i;
-    if(i===page)a.classList.add('active');
-    a.addEventListener('click',(e)=>{
-      e.preventDefault();
-      renderPage(i);
-      window.scrollTo(0,0);
-    });
-    pagination.appendChild(a);
-  }
-}
-
-// Search
-document.getElementById('search').addEventListener('keypress', function(e){
-  if(e.key==='Enter'){
-    const val = this.value.trim().toLowerCase();
-    const filtered = allPosts.filter(p=>{
-      return (p.CODE||'').toLowerCase().includes(val) || (p.Actress||'').toLowerCase().includes(val) || (p.Tags||'').toLowerCase().includes(val);
-    });
-    if(filtered.length===0) alert('No results found');
-    else {
-      allPosts = filtered;
-      renderPage(1);
-    }
-  }
-});
-
-fetchPosts();
-
-// Popup Telegram
-const popup=document.getElementById('popup');
-const closeBtn=document.getElementById('popup-close');
-window.addEventListener('load',()=>popup.style.display='block');
-closeBtn.addEventListener('click',()=>popup.style.display='none');
+function escapeJS(s){return(s||'').replace(/'/g,"\\'").replace(/"/g,'\\"')}
+function escapeHTML(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function escapeAttr(s){return(s||'').replace(/"/g,'&quot;').replace(/'/g,"&#039;")}
+init();
