@@ -1,3 +1,4 @@
+// URL OpenSheet final
 const SHEET_URL = 'https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1';
 
 async function fetchPosts() {
@@ -11,14 +12,14 @@ async function fetchPosts() {
     const data = await response.json();
     console.log('Data OpenSheet:', data); // debug
 
-    // Filter FIX1 sampai FIX4 dari kolom "undefined"
+    // Filter semua baris yang ada trigger (FIX1, FIX2, dst.)
     const filtered = data.filter(r => {
       const trigger = r.M || r.Trigger || r["undefined"];
-      return trigger && ['FIX1','FIX2','FIX3','FIX4'].includes(trigger.toUpperCase());
+      return trigger && trigger.toUpperCase().startsWith('FIX');
     });
 
     if (filtered.length === 0) {
-      container.innerHTML = '<p>Tidak ada postingan dengan trigger FIX1-FIX4 di Sheet.</p>';
+      container.innerHTML = '<p>Tidak ada postingan dengan trigger FIX di Sheet.</p>';
       return;
     }
 
@@ -61,5 +62,5 @@ function renderPosts(posts) {
   });
 }
 
-// Jalankan fetch
+// Jalankan fetch saat halaman load
 fetchPosts();
