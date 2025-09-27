@@ -3,213 +3,288 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JAVTerabox</title>
-  <link rel="icon" type="image/png" href="https://cdn-1.webcatalog.io/catalog/terabox/terabox-icon-filled-256.png?v=1757896627824">
+  <title>Video Collection</title>
+  <link rel="icon" href="https://cdn-1.webcatalog.io/catalog/terabox/terabox-icon-filled-256.png?v=1757896627824" type="image/png">
   <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f5f5f5; }
-    header { background:#b30000; color:#fff; padding:15px; display:flex; justify-content:space-between; align-items:center; }
-    header h1 { margin:0; font-size:24px; cursor:pointer; }
-    #search-box { display:flex; gap:5px; }
-    #searchInput { padding:5px; font-size:14px; }
-    #searchBtn { padding:6px 10px; background:#fff; border:none; cursor:pointer; }
-
-    main { padding:20px; max-width:1200px; margin:auto; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:15px; }
-    .card { background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 5px rgba(0,0,0,0.1); cursor:pointer; display:flex; flex-direction:column; }
-    .card img { width:100%; height:0; padding-top:56.25%; object-fit:cover; background:#ddd; position:relative; }
-    .card h3 { margin:10px; font-size:16px; }
-
-    .pagination { text-align:center; margin:20px 0; }
-    .pagination button { margin:0 3px; padding:6px 10px; border:none; background:#ddd; cursor:pointer; border-radius:4px; }
-    .pagination button.active { background:#b30000; color:#fff; }
-
-    /* === DETAIL === */
-    .detail { max-width:800px; margin:auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.2); }
-    .detail img { width:100%; border-radius:10px; position:relative; }
-    .play-button { position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:80px; height:80px; background:rgba(0,0,0,0.5); border-radius:50%; display:flex; justify-content:center; align-items:center; }
-    .play-button::after { content:"▶"; font-size:40px; color:#fff; margin-left:5px; }
-    .detail h2 { margin:15px 0; font-size:22px; }
-    .meta { margin-bottom:10px; }
-    .meta span { margin-right:10px; cursor:pointer; color:#b30000; }
-    .download-btn { display:block; text-align:center; margin:15px auto; background:#b30000; color:#fff; padding:10px 20px; text-decoration:none; border-radius:6px; font-weight:bold; }
-    .back-btn { display:block; text-align:center; margin-top:10px; text-decoration:none; color:#555; }
-
-    /* === RELATED === */
-    .related { margin-top:30px; }
-    .related h3 { font-size:18px; margin-bottom:15px; }
-    .related-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:15px; }
-    .related-card { background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 5px rgba(0,0,0,0.1); cursor:pointer; }
-    .related-card img { width:100%; height:0; padding-top:56.25%; object-fit:cover; background:#ddd; }
-    .related-card h4 { margin:10px; font-size:14px; }
-    .related-pagination { text-align:center; margin-top:15px; }
-    .related-pagination button { margin:0 3px; padding:5px 8px; border:none; background:#ddd; cursor:pointer; border-radius:4px; }
-    .related-pagination button.active { background:#b30000; color:#fff; }
-
-    /* === TELEGRAM POPUP === */
-    #popup { position:fixed; bottom:100px; right:20px; background:#fff; border:2px solid #0088cc; border-radius:12px; padding:10px; display:flex; align-items:center; gap:10px; box-shadow:0 4px 12px rgba(0,0,0,0.2); z-index:1000; }
-    #popup img { width:30px; }
-    #popup a { color:#0088cc; font-weight:bold; text-decoration:none; }
-    #popup-close { margin-left:5px; cursor:pointer; color:#333; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      color: #333;
+    }
+    header {
+      background: #222;
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+    .search-box {
+      margin: 15px auto;
+      max-width: 400px;
+      display: flex;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px 0 0 5px;
+    }
+    .search-box button {
+      padding: 10px 15px;
+      border: none;
+      background: #007bff;
+      color: #fff;
+      border-radius: 0 5px 5px 0;
+      cursor: pointer;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 15px;
+      padding: 15px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .card:hover { transform: scale(1.02); }
+    .card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+    }
+    .card h3 {
+      font-size: 16px;
+      margin: 10px;
+      text-align: center;
+    }
+    .pagination {
+      text-align: center;
+      padding: 20px;
+    }
+    .pagination button {
+      margin: 0 5px;
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      background: #fff;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .pagination button.active {
+      background: #007bff;
+      color: #fff;
+    }
+    .detail {
+      display: none;
+      padding: 20px;
+    }
+    .detail.active {
+      display: block;
+    }
+    .detail img {
+      max-width: 700px;
+      width: 100%;
+      display: block;
+      margin: 0 auto 15px;
+      border-radius: 8px;
+    }
+    .play-button {
+      position: relative;
+      display: inline-block;
+    }
+    .play-button::after {
+      content: "▶";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 60px;
+      color: rgba(255,255,255,0.8);
+      text-shadow: 0 0 10px rgba(0,0,0,0.7);
+      pointer-events: none;
+    }
+    .download-btn {
+      display: block;
+      margin: 15px auto;
+      padding: 12px 25px;
+      background: #007bff;
+      color: #fff;
+      border-radius: 5px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .related {
+      margin-top: 30px;
+    }
+    .related h2 {
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 15px;
+    }
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 15px;
+      padding: 10px;
+    }
+    .related-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+    /* Telegram popup */
+    .telegram-popup {
+      position: fixed;
+      right: 20px;
+      bottom: 80px;
+      background: #0088cc;
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      cursor: pointer;
+      font-size: 14px;
+      z-index: 999;
+    }
+    .telegram-popup img {
+      width: 24px;
+      height: 24px;
+      margin-right: 8px;
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1 id="homeLink">JAVTerabox</h1>
-    <div id="search-box">
-      <input type="text" id="searchInput" placeholder="Search code or actress...">
-      <button id="searchBtn">Search</button>
+    <h1>Video Collection</h1>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search actress or code...">
+      <button onclick="searchData()">Search</button>
     </div>
   </header>
-  <main id="content">Loading...</main>
 
-  <!-- === POPUP TELEGRAM === -->
-  <div id="popup">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram">
-    <a href="https://t.me/asetplay" target="_blank">Join Telegram</a>
-    <span id="popup-close">&#x2715;</span>
+  <div id="listView" class="grid"></div>
+  <div id="pagination" class="pagination"></div>
+
+  <div id="detailView" class="detail"></div>
+
+  <div class="telegram-popup" onclick="window.open('https://t.me/ASETPLAY','_blank')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram"> Join Telegram @ASETPLAY
   </div>
 
   <script>
-    const SHEET_URL = "https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1";
-    let allData = [];
+    // Dummy Data (replace with Google Sheets fetch)
+    const data = Array.from({length: 50}, (_,i)=>({
+      code: `CODE-${i+1}`,
+      actress: `Actress ${i+1}`,
+      title: `Sample Title ${i+1}`,
+      img: `https://picsum.photos/seed/${i+1}/400/250`,
+      link: `https://terabox.com/sample/${i+1}`
+    }));
+
     let currentPage = 1;
     const perPage = 20;
+    let filteredData = [...data];
 
-    async function fetchData() {
-      const res = await fetch(SHEET_URL);
-      const data = await res.json();
-      allData = data.reverse(); // terbaru di depan
+    function renderList(page=1) {
+      currentPage = page;
+      const start = (page-1)*perPage;
+      const end = start+perPage;
+      const list = filteredData.slice(start,end);
+      const container = document.getElementById("listView");
+      container.innerHTML = list.map(item=>`
+        <div class="card" onclick="showDetail('${item.code}')">
+          <img src="${item.img}" alt="${item.code}">
+          <h3>${item.code} - ${item.actress}</h3>
+        </div>
+      `).join("");
+      renderPagination();
+    }
+
+    function renderPagination() {
+      const totalPages = Math.ceil(filteredData.length / perPage);
+      let html = "";
+      let start = Math.max(1, currentPage-2);
+      let end = Math.min(totalPages, start+4);
+      if (currentPage > 3) html += `<button onclick="renderList(${currentPage-1})">&lt;</button>`;
+      for (let i=start;i<=end;i++) {
+        html += `<button onclick="renderList(${i})" class="${i===currentPage?'active':''}">${i}</button>`;
+      }
+      if (currentPage < totalPages-2) html += `<button onclick="renderList(${currentPage+1})">&gt;</button>`;
+      document.getElementById("pagination").innerHTML = html;
+    }
+
+    function showDetail(code) {
+      const item = data.find(x=>x.code===code);
+      const container = document.getElementById("detailView");
+      container.classList.add("active");
+      document.getElementById("listView").style.display = "none";
+      document.getElementById("pagination").style.display = "none";
+      container.innerHTML = `
+        <h2 style="text-align:center">${item.code} - ${item.actress}</h2>
+        <div class="play-button">
+          <img src="${item.img}" alt="${item.code}">
+        </div>
+        <a class="download-btn" href="${item.link}" target="_blank">Watch and Download</a>
+        <div class="related">
+          <h2>Related Posts</h2>
+          <div class="related-grid">
+            ${getRelated(item.code).map(rel=>`
+              <div class="related-card" onclick="showDetail('${rel.code}')">
+                <img src="${rel.img}" alt="${rel.code}">
+                <p style="text-align:center;font-size:14px">${rel.code} - ${rel.actress}</p>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+        <div style="text-align:center;margin-top:20px">
+          <button onclick="backToList()">⬅ Back to List</button>
+        </div>
+      `;
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    function getRelated(code) {
+      const others = data.filter(x=>x.code!==code);
+      return others.sort(()=>0.5-Math.random()).slice(0,10);
+    }
+
+    function backToList() {
+      document.getElementById("detailView").classList.remove("active");
+      document.getElementById("listView").style.display = "grid";
+      document.getElementById("pagination").style.display = "block";
+      renderList(1);
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    function searchData() {
+      const val = document.getElementById("searchInput").value.toLowerCase();
+      if (!val) {
+        filteredData = [...data];
+      } else {
+        filteredData = data.filter(x =>
+          x.code.toLowerCase().includes(val) ||
+          x.actress.toLowerCase().includes(val)
+        );
+      }
       renderList(1);
     }
 
-    function renderList(page, searchTerm="") {
-      currentPage = page;
-      const content = document.getElementById("content");
-      let filtered = allData;
-
-      if (searchTerm) {
-        const term = searchTerm.toLowerCase();
-        filtered = allData.filter(item => {
-          return (item.CODE && item.CODE.toLowerCase().includes(term)) ||
-                 (item.Actress && item.Actress.toLowerCase().includes(term));
-        });
-        if (filtered.length === 0) {
-          filtered = allData.filter(item => {
-            return (item.CODE && similarity(item.CODE.toLowerCase(), term) > 0.4) ||
-                   (item.Actress && similarity(item.Actress.toLowerCase(), term) > 0.4);
-          });
-        }
-      }
-
-      const start = (page-1)*perPage;
-      const paginated = filtered.slice(start, start+perPage);
-
-      let html = `<div class="grid">`;
-      paginated.forEach(item => {
-        html += `
-          <div class="card" onclick="renderDetail('${item.CODE}')">
-            <img src="${item['LINK FOTO']}" alt="${item.CODE}">
-            <h3>${item.CODE} ${item.Actress || ""}</h3>
-          </div>`;
-      });
-      html += `</div>`;
-
-      html += `<div class="pagination">`;
-      const totalPages = Math.ceil(filtered.length/perPage);
-      const maxPages = 5;
-      let startPage = Math.max(1, page - 2);
-      let endPage = Math.min(totalPages, startPage + maxPages - 1);
-      if (endPage - startPage < maxPages - 1) startPage = Math.max(1, endPage - maxPages + 1);
-
-      if (startPage > 1) html += `<button onclick="renderList(${startPage-1}, '${searchTerm}')"><</button>`;
-      for (let i=startPage;i<=endPage;i++) {
-        html += `<button class="${i===page?"active":""}" onclick="renderList(${i}, '${searchTerm}')">${i}</button>`;
-      }
-      if (endPage < totalPages) html += `<button onclick="renderList(${endPage+1}, '${searchTerm}')">></button>`;
-      html += `</div>`;
-
-      content.innerHTML = html;
-      window.scrollTo({top:0, behavior:"smooth"});
-    }
-
-    function renderDetail(code) {
-      const content = document.getElementById("content");
-      const item = allData.find(d => d.CODE === code);
-      if (!item) { content.innerHTML = "<p>Not found</p>"; return; }
-
-      let html = `<div class="detail">`;
-      html += `
-        <div style="position:relative;">
-          <img src="${item['LINK FOTO']}" alt="${item.CODE}">
-          <div class="play-button"></div>
-        </div>
-        <h2>${item.CODE} ${item.Actress || ""}</h2>
-        <div class="meta">
-          <span onclick="searchTag('${item.Actress}')">${item.Actress || ""}</span>
-          <span onclick="searchTag('${item.Studio}')">${item.Studio || ""}</span>
-        </div>
-        <a href="${item.LINK}" target="_blank" class="download-btn">Watch and Download</a>
-        <a href="javascript:void(0)" class="back-btn" onclick="renderList(1)">Back to list</a>
-      `;
-      html += `</div>`;
-
-      html += `<div class="related"><h3>Related Posts</h3><div id="relatedContent"></div><div id="relatedPagination" class="related-pagination"></div></div>`;
-
-      content.innerHTML = html;
-      renderRelated(code, 1);
-      window.scrollTo({top:0, behavior:"smooth"});
-    }
-
-    function renderRelated(code, page) {
-      const perRelated = 6;
-      const baseItem = allData.find(d => d.CODE === code);
-      let related = allData.filter(d => d.CODE !== code && d.Actress === baseItem.Actress);
-
-      if (related.length === 0) related = allData.filter(d => d.CODE !== code);
-
-      const start = (page-1)*perRelated;
-      const paginated = related.slice(start, start+perRelated);
-
-      let html = `<div class="related-grid">`;
-      paginated.forEach(r => {
-        html += `
-          <div class="related-card" onclick="renderDetail('${r.CODE}')">
-            <img src="${r['LINK FOTO']}" alt="${r.CODE}">
-            <h4>${r.CODE} ${r.Actress || ""}</h4>
-          </div>`;
-      });
-      html += `</div>`;
-      document.getElementById("relatedContent").innerHTML = html;
-
-      // Pagination
-      const totalPages = Math.ceil(related.length/perRelated);
-      let pg = "";
-      for (let i=1;i<=totalPages;i++) {
-        pg += `<button class="${i===page?"active":""}" onclick="renderRelated('${code}', ${i})">${i}</button>`;
-      }
-      document.getElementById("relatedPagination").innerHTML = pg;
-    }
-
-    function searchTag(tag) {
-      renderList(1, tag);
-    }
-
-    // Fuzzy match simple
-    function similarity(a,b) {
-      let matches=0;
-      for (let i=0;i<Math.min(a.length,b.length);i++) if (a[i]===b[i]) matches++;
-      return matches/Math.max(a.length,b.length);
-    }
-
-    document.getElementById("searchBtn").addEventListener("click", ()=>{
-      const term = document.getElementById("searchInput").value.trim();
-      renderList(1, term);
-    });
-    document.getElementById("homeLink").addEventListener("click", ()=>renderList(1));
-
-    document.getElementById("popup-close").addEventListener("click", ()=>document.getElementById("popup").style.display="none");
-
-    fetchData();
+    renderList();
   </script>
 </body>
 </html>
