@@ -1,413 +1,389 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>JAVTerabox</title>
-  <link rel="icon" href="https://cdn-1.webcatalog.io/catalog/terabox/terabox-icon-filled-256.png?v=1757896627824" type="image/png">
-
+  <link rel="icon" href="https://cdn-1.webcatalog.io/catalog/terabox/terabox-icon-filled-256.png?v=1757896627824" />
   <style>
-    :root{
-      --red: #d32f2f;
-      --red-dark:#b71c1c;
-      --bg:#0f0f10;
-      --card:#181818;
-      --muted:#bdbdbd;
-      --text:#f5f5f5;
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #111;
+      color: #fff;
     }
-    .light {
-      --bg:#ffffff;
-      --card:#fafafa;
-      --text:#111;
-      --muted:#666;
+    header {
+      background: #b30000;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    header span { color: #fff; text-decoration: none; }
+
+    .search-box {
+      text-align: center;
+      margin: 15px;
+    }
+    .search-box input {
+      padding: 8px;
+      width: 70%;
+      max-width: 400px;
+    }
+    .search-box button {
+      padding: 8px 15px;
+      margin-left: 5px;
+      background: #b30000;
+      color: #fff;
+      border: none;
+      cursor: pointer;
     }
 
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter, system-ui, Arial, sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
-    header{position:sticky;top:0;background:var(--red);padding:12px 18px;display:flex;align-items:center;gap:16px;z-index:1200}
-    #logo{color:#fff;font-weight:800;font-size:20px;cursor:pointer}
-    #search-wrap{flex:1;display:flex;align-items:center;gap:8px}
-    #search {flex:1;padding:8px 12px;border-radius:8px;border:0;max-width:720px}
-    #search-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.06);color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer}
-    #modeToggle{background:#fff;color:var(--red);border:0;padding:6px 10px;border-radius:8px;cursor:pointer}
-
-    main{padding:18px;max-width:1300px;margin:0 auto}
-    /* Grid: desktop 5 columns (>=1200), medium 4 (>=992), tablet 3 (>=768), mobile 2 */
-    .grid{display:grid;gap:18px}
-    @media(min-width:1200px){ .grid{grid-template-columns:repeat(5,1fr);} }
-    @media(min-width:992px) and (max-width:1199px){ .grid{grid-template-columns:repeat(4,1fr);} }
-    @media(min-width:768px) and (max-width:991px){ .grid{grid-template-columns:repeat(3,1fr);} }
-    @media(max-width:767px){ .grid{grid-template-columns:repeat(2,1fr);} }
-
-    .card{background:var(--card);border-radius:12px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:transform .18s,box-shadow .18s}
-    .card:hover{transform:translateY(-6px);box-shadow:0 8px 30px rgba(0,0,0,0.6)}
-    .thumb{position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;background:#222}
-    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-    .title{padding:10px 12px;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .muted{color:var(--muted);font-size:12px;padding:0 12px 12px}
-
-    /* pagination */
-    .pagination{display:flex;justify-content:center;gap:8px;padding:18px 0}
-    .pg-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text);padding:8px 12px;border-radius:8px;cursor:pointer}
-    .pg-btn.active{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
-    .pg-btn:hover{transform:translateY(-2px)}
-
-    /* detail view */
-    .detail-wrap{max-width:980px;margin:16px auto;padding:18px;background:var(--card);border-radius:12px}
-    .breadcrumb{font-size:13px;color:var(--muted);margin-bottom:12px}
-    .detail-title{font-size:20px;margin:0 0 12px;cursor:default}
-    .poster-wrap{position:relative;display:block;margin:0 auto;border-radius:12px;overflow:hidden;max-width:720px}
-    .poster-wrap img{width:100%;height:auto;display:block}
-    .play-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90px;height:90px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;pointer-events:none}
-    .play-overlay::after{content:'▶';color:#fff;font-size:36px}
-    .download-center{display:flex;justify-content:center;margin-top:14px}
-    .download-btn{background:var(--red);color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:700;display:inline-block}
-    .back{display:block;text-align:center;margin-top:12px;color:var(--muted);text-decoration:none}
-
-    /* related */
-    .related-section{margin-top:28px}
-    .related-title{font-size:18px;margin:0 0 12px;color:var(--text)}
-    .related-grid{display:grid;gap:12px}
-    @media(min-width:768px){ .related-grid{grid-template-columns:repeat(4,1fr)} }
-    @media(max-width:767px){ .related-grid{grid-template-columns:repeat(2,1fr)} }
-    .related-item img{width:100%;height:150px;object-fit:cover;border-radius:8px}
-    .related-item .r-title{font-size:13px;margin-top:6px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;color:var(--text)}
-
-    /* popup telegram - moved higher so it won't cover pagination */
-    .popup{
-      position:fixed; right:18px; bottom:110px; z-index:4000;
-      background:#fff;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;
-      box-shadow:0 12px 30px rgba(0,0,0,0.35);border:3px solid var(--red);
+    .grid {
+      display: grid;
+      gap: 15px;
+      padding: 15px;
     }
-    .popup img{width:34px;height:34px}
-    .popup a{color:var(--red);font-weight:700;text-decoration:none}
-    .popup .close{cursor:pointer;font-weight:700;color:#333;margin-left:8px}
+    @media (min-width: 1024px) {
+      .grid { grid-template-columns: repeat(5, 1fr); }
+    }
+    @media (max-width: 1023px) and (min-width: 600px) {
+      .grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 599px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
 
-    /* small helpers */
-    .msg { text-align:center;padding:12px;color:var(--muted) }
-    .hidden{display:none}
+    .card {
+      background: #1a1a1a;
+      border-radius: 8px;
+      overflow: hidden;
+      text-align: center;
+      cursor: pointer;
+      transition: transform .2s;
+    }
+    .card:hover { transform: scale(1.03); }
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+    }
+    .card h3 {
+      font-size: 0.9em;
+      padding: 8px;
+      margin: 0;
+      color: #fff;
+    }
 
-    /* fallback for very long titles on detail poster (mobile) */
-    .detail-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pagination {
+      text-align: center;
+      margin: 20px;
+    }
+    .pagination button {
+      margin: 0 3px;
+      padding: 6px 12px;
+      border: none;
+      background: #b30000;
+      color: #fff;
+      cursor: pointer;
+    }
+    .pagination button.active { background: #e60000; }
+
+    .detail {
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    .detail img {
+      width: 100%;
+      border-radius: 10px;
+      display: block;
+      margin: auto;
+      position: relative;
+    }
+    .play-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 60px;
+      color: white;
+      opacity: 0.8;
+      pointer-events: none;
+    }
+    .detail h2 {
+      margin-top: 15px;
+      font-size: 1.4em;
+      text-align: center;
+    }
+    .tags span {
+      display: inline-block;
+      margin: 5px;
+      padding: 5px 10px;
+      background: #333;
+      border-radius: 5px;
+      font-size: 0.85em;
+      cursor: pointer;
+    }
+    .download-btn {
+      display: block;
+      margin: 20px auto;
+      padding: 12px 25px;
+      background: #b30000;
+      color: #fff;
+      text-align: center;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .related {
+      margin-top: 40px;
+    }
+    .related h3 {
+      margin-bottom: 10px;
+      border-bottom: 2px solid #b30000;
+      display: inline-block;
+    }
+
+    /* === Popup Telegram === */
+    #popup {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: #fff;
+      color: #000;
+      padding: 10px 15px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+    #popup img {
+      width: 30px;
+      height: 30px;
+    }
+    #popup a {
+      color: #000;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    #popup-close {
+      margin-left: 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+  <header onclick="goHome()"><span>JAVTerabox</span></header>
+  
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search by code, actress, tags..." />
+    <button onclick="doSearch()">Search</button>
+  </div>
 
-  <header>
-    <div id="logo" onclick="resetToHome()">JAVTerabox</div>
+  <main id="app"></main>
 
-    <div id="search-wrap">
-      <input id="search" type="text" placeholder="Search Code, Actress, Tags..." aria-label="search" />
-      <button id="searchBtn">Search</button>
-    </div>
-
-    <button id="modeToggle" title="Toggle light/dark">☀️</button>
-  </header>
-
-  <main id="main">
-    <div id="listView">
-      <div id="topMsg" class="msg hidden"></div>
-      <div id="grid" class="grid" aria-live="polite"></div>
-      <div id="pagination" class="pagination"></div>
-    </div>
-
-    <div id="detailView" class="hidden"></div>
-  </main>
-
-  <!-- popup telegram (dismiss -> remember) -->
-  <div id="popup" class="popup hidden" role="dialog" aria-label="Join Telegram">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram" />
-    <a href="https://t.me/asetplay" target="_blank">Join Telegram @ASETPLAY</a>
-    <div class="close" id="popupClose" title="Close">✕</div>
+  <!-- === POPUP TELEGRAM === -->
+  <div id="popup">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram">
+    <a href="https://t.me/asetplay" target="_blank">Join Telegram</a>
+    <span id="popup-close">&#x2715;</span>
   </div>
 
 <script>
-/* ===== CONFIG ===== */
-const OPEN_SHEET = 'https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1';
-const PER_PAGE = 20;
-const MAX_PAGE_BUTTONS = 5;
-const PLACEHOLDER = 'https://via.placeholder.com/600x800?text=No+Image';
-
-/* ===== STATE ===== */
-let fullPosts = [];      // original full list (latest first)
-let filteredPosts = [];  // current filtered list (search results or full)
+const SHEET_URL = "https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1";
+let allData = [];
 let currentPage = 1;
+let perPage = 20;
+let currentView = "list"; // list | detail | search
+let currentSearch = "";
 
-/* ===== HELPERS ===== */
-function el(id){return document.getElementById(id)}
-function safeImg(src){ return src ? src : PLACEHOLDER; }
-
-/* fetch data and init */
-async function init(){
-  try{
-    const resp = await fetch(OPEN_SHEET);
-    const json = await resp.json();
-
-    // Only rows with trigger "FIX..." (some sheets store it under "undefined")
-    const raw = json.filter(r => {
-      const trigger = (r['undefined'] || r['M'] || r.Trigger || '').toString().toUpperCase();
-      return trigger.startsWith('FIX');
-    });
-
-    // reverse so latest uploaded shows first
-    fullPosts = raw.reverse();
-    filteredPosts = fullPosts.slice();
-
-    renderList(1);
-    // Popup show if not dismissed
-    setTimeout(showPopupIfNeeded, 1200);
-  } catch(e){
-    el('grid').innerHTML = `<div class="msg">Failed to load data: ${e.message||e}</div>`;
-  }
+// === Fetch data ===
+async function loadData() {
+  const res = await fetch(SHEET_URL);
+  allData = await res.json();
+  // sort agar terbaru muncul di page 1
+  allData.reverse();
+  renderList(1);
 }
 
-/* ===== RENDER LIST (grid + pagination) ===== */
-function renderList(page = 1){
-  currentPage = Math.max(1, Math.floor(page));
-  const grid = el('grid');
-  const topMsg = el('topMsg');
-  topMsg.classList.add('hidden');
-  topMsg.textContent='';
+// === Render List ===
+function renderList(page) {
+  currentView = "list";
+  currentSearch = "";
+  currentPage = page;
+  const app = document.getElementById("app");
+  app.innerHTML = "";
 
-  const total = filteredPosts.length;
-  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-  if(currentPage > totalPages) currentPage = totalPages;
+  let start = (page - 1) * perPage;
+  let end = start + perPage;
+  let items = allData.slice(start, end);
 
-  // slice items
-  const start = (currentPage-1)*PER_PAGE;
-  const pageItems = filteredPosts.slice(start, start+PER_PAGE);
+  const grid = document.createElement("div");
+  grid.className = "grid";
 
-  if(pageItems.length === 0){
-    grid.innerHTML = `<div class="msg">No results.</div>`;
-    el('pagination').innerHTML = '';
-    return;
-  }
-
-  // build grid
-  grid.innerHTML = pageItems.map(p => {
-    const img = safeImg(p['LINK FOTO']);
-    const code = (p.CODE||'').trim();
-    const actress = (p.Actress||'').trim();
-    // title shown: CODE + Actress (no long JUDUL)
-    return `
-      <div class="card" role="button" tabindex="0" onclick="openDetail('${escapeJS(code)}')" onkeypress="if(event.key==='Enter'){openDetail('${escapeJS(code)}')}">
-        <div class="thumb">
-          <img src="${img}" alt="${escapeHTML(code+' '+actress)}" loading="lazy"
-            onerror="this.onerror=null;this.src='${PLACEHOLDER}';" />
-        </div>
-        <div class="title">${escapeHTML(code+' '+actress)}</div>
-        <div class="muted"></div>
-      </div>
+  items.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.onclick = () => renderDetail(item);
+    card.innerHTML = `
+      <img src="${item['LINK FOTO'] || ''}" alt="${item.CODE}">
+      <h3>${item.CODE} ${item.Actress || ""}</h3>
     `;
-  }).join('');
-
-  renderPagination(totalPages);
-  // ensure list view visible
-  el('listView').classList.remove('hidden');
-  el('detailView').classList.add('hidden');
-
-  // scroll to top
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-/* pagination: only show MAX_PAGE_BUTTONS buttons centered around current page */
-function renderPagination(totalPages){
-  const container = el('pagination');
-  if(totalPages <= 1){ container.innerHTML = ''; return; }
-
-  let start = currentPage - Math.floor(MAX_PAGE_BUTTONS/2);
-  if(start < 1) start = 1;
-  let end = start + MAX_PAGE_BUTTONS - 1;
-  if(end > totalPages){ end = totalPages; start = Math.max(1, end - MAX_PAGE_BUTTONS + 1); }
-
-  let html = '';
-  if(currentPage > 1) html += `<button class="pg-btn" onclick="renderList(${currentPage-1})">&lt;</button>`;
-  for(let i=start;i<=end;i++){
-    html += `<button class="pg-btn ${i===currentPage? 'active' : ''}" onclick="renderList(${i})">${i}</button>`;
-  }
-  if(currentPage < totalPages) html += `<button class="pg-btn" onclick="renderList(${currentPage+1})">&gt;</button>`;
-
-  container.innerHTML = html;
-}
-
-/* ===== SEARCH =====
-   - exact includes first,
-   - if none: startsWith (prefix),
-   - if still none: token match (any token),
-   - if still none: show top latest posts and a message
-*/
-function doSearch(){
-  const q = (el('search').value || '').trim().toLowerCase();
-  const topMsg = el('topMsg');
-  topMsg.classList.add('hidden'); topMsg.textContent='';
-
-  if(!q){
-    // reset
-    filteredPosts = fullPosts.slice();
-    renderList(1);
-    return;
-  }
-
-  // exact includes
-  let results = fullPosts.filter(p => {
-    return (p.CODE||'').toString().toLowerCase().includes(q) ||
-           (p.Actress||'').toString().toLowerCase().includes(q) ||
-           (p.Tags||'').toString().toLowerCase().includes(q) ||
-           (p.Actor||'').toString().toLowerCase().includes(q);
+    grid.appendChild(card);
   });
 
-  // prefix fallback
-  if(results.length === 0){
-    results = fullPosts.filter(p => {
-      return (p.CODE||'').toString().toLowerCase().startsWith(q) ||
-             (p.Actress||'').toString().toLowerCase().startsWith(q);
-    });
+  app.appendChild(grid);
+  renderPagination(page);
+  window.scrollTo(0,0);
+}
+
+// === Render Pagination ===
+function renderPagination(page) {
+  const app = document.getElementById("app");
+  const totalPages = Math.ceil(allData.length / perPage);
+  const pag = document.createElement("div");
+  pag.className = "pagination";
+
+  let start = Math.max(1, page - 2);
+  let end = Math.min(totalPages, start + 4);
+
+  if (start > 1) {
+    const prev = document.createElement("button");
+    prev.textContent = "<";
+    prev.onclick = () => renderList(start - 1);
+    pag.appendChild(prev);
   }
 
-  // token fuzzy fallback
-  if(results.length === 0){
-    const tokens = q.split(/\s+/).filter(Boolean);
-    results = fullPosts.filter(p => {
-      const hay = ((p.CODE||'') + ' ' + (p.Actress||'') + ' ' + (p.Tags||'')).toLowerCase();
-      return tokens.some(t => hay.includes(t));
-    });
+  for (let i = start; i <= end; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    if (i === page) btn.classList.add("active");
+    btn.onclick = () => renderList(i);
+    pag.appendChild(btn);
   }
 
-  // still empty -> show latest with message
-  if(results.length === 0){
-    filteredPosts = fullPosts.slice(); // show latest
-    topMsg.textContent = `No exact matches for "${q}". Showing latest posts instead.`;
-    topMsg.classList.remove('hidden');
+  if (end < totalPages) {
+    const next = document.createElement("button");
+    next.textContent = ">";
+    next.onclick = () => renderList(end + 1);
+    pag.appendChild(next);
+  }
+
+  app.appendChild(pag);
+}
+
+// === Render Detail ===
+function renderDetail(item) {
+  currentView = "detail";
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+
+  const div = document.createElement("div");
+  div.className = "detail";
+
+  div.innerHTML = `
+    <div style="position:relative;">
+      <a href="${item.LINK}" target="_blank">
+        <img src="${item['LINK FOTO']}" alt="${item.CODE}">
+        <div class="play-overlay">▶</div>
+      </a>
+    </div>
+    <h2><a href="${item.LINK}" target="_blank" style="color:white; text-decoration:none;">${item.CODE} ${item.Actress || ""}</a></h2>
+    <p><strong>Actor:</strong> ${item.Actor || "-"}</p>
+    <p><strong>Studio:</strong> ${item.Studio || "-"}</p>
+    <div class="tags">
+      ${(item.Tags || "").split(",").map(t => `<span onclick="filterTag('${t.trim()}')">${t.trim()}</span>`).join("")}
+    </div>
+    <a class="download-btn" href="${item.LINK}" target="_blank">Watch and Download</a>
+  `;
+
+  // related posts
+  const related = document.createElement("div");
+  related.className = "related";
+  related.innerHTML = "<h3>Related Posts</h3>";
+
+  const grid = document.createElement("div");
+  grid.className = "grid";
+  let others = allData.filter(d => d.CODE !== item.CODE).slice(0,8);
+  others.forEach(r => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.onclick = () => renderDetail(r);
+    card.innerHTML = `
+      <img src="${r['LINK FOTO']}" alt="${r.CODE}">
+      <h3>${r.CODE} ${r.Actress || ""}</h3>
+    `;
+    grid.appendChild(card);
+  });
+  related.appendChild(grid);
+
+  div.appendChild(related);
+  app.appendChild(div);
+  window.scrollTo(0,0);
+}
+
+// === Search ===
+function doSearch() {
+  const val = document.getElementById("searchInput").value.trim().toLowerCase();
+  currentSearch = val;
+  if (!val) return renderList(1);
+
+  const results = allData.filter(r =>
+    (r.CODE || "").toLowerCase().includes(val) ||
+    (r.Actress || "").toLowerCase().includes(val) ||
+    (r.Tags || "").toLowerCase().includes(val)
+  );
+
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+
+  if (results.length === 0) {
+    app.innerHTML = `<p style="text-align:center;margin-top:50px;">No results found. Showing related:</p>`;
     renderList(1);
     return;
   }
 
-  // set filtered and render
-  filteredPosts = results.slice();
-  renderList(1);
+  const grid = document.createElement("div");
+  grid.className = "grid";
+
+  results.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.onclick = () => renderDetail(item);
+    card.innerHTML = `
+      <img src="${item['LINK FOTO'] || ''}" alt="${item.CODE}">
+      <h3>${item.CODE} ${item.Actress || ""}</h3>
+    `;
+    grid.appendChild(card);
+  });
+
+  app.appendChild(grid);
+  window.scrollTo(0,0);
 }
 
-/* ===== DETAIL VIEW ===== */
-function openDetail(code){
-  if(!code) return;
-  const post = fullPosts.find(p => (p.CODE||'').toString().toUpperCase() === code.toString().toUpperCase());
-  if(!post) return;
-
-  // render detail
-  const dv = el('detailView');
-  const detailHTML = buildDetailHTML(post);
-  dv.innerHTML = detailHTML;
-  // wire related click handlers via event delegation: use inline onclick for simplicity
-  el('listView').classList.add('hidden');
-  dv.classList.remove('hidden');
-
-  // scroll to top
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-function buildDetailHTML(post){
-  const code = post.CODE || '';
-  const actress = post.Actress || '';
-  const actor = post.Actor || '';
-  const studio = post.Studio || '';
-  const tags = (post.Tags||'').split(',').map(s => s.trim()).filter(Boolean);
-  const img = safeImg(post['LINK FOTO']);
-
-  // related (first 8 except itself)
-  const related = fullPosts.filter(p=> (p.CODE||'') !== code).slice(0,8);
-
-  const tagsHTML = tags.map(t => `<span onclick="searchTag('${escapeJS(t)}')" style="margin-right:6px">${escapeHTML(t)}</span>`).join(' ');
-  const actressHTML = (actress || '').split(',').map(a=>`<span onclick="searchTag('${escapeJS(a.trim())}')">${escapeHTML(a.trim())}</span>`).join(' ');
-
-  const relatedHTML = related.map(p => {
-    const rimg = safeImg(p['LINK FOTO']);
-    const rcode = p.CODE || '';
-    const ract = p.Actress || '';
-    return `<div class="related-item"><a href="javascript:openDetail('${escapeJS(rcode)}');window.scrollTo({top:0,behavior:'smooth'})"><img src="${rimg}" onerror="this.onerror=null;this.src='${PLACEHOLDER}'" alt="${escapeHTML(rcode)}"><div class="r-title">${escapeHTML(rcode+' '+ract)}</div></a></div>`;
-  }).join('');
-
-  return `
-    <div class="detail-wrap">
-      <div class="breadcrumb"><a href="javascript:resetToHome()">Home</a> › ${escapeHTML(actress)} › ${escapeHTML(code)}</div>
-      <h2 class="detail-title">${escapeHTML(code + (actress ? ' ' + actress : ''))}</h2>
-
-      <div style="text-align:center">
-        <div class="poster-wrap" style="display:inline-block;position:relative;">
-          <img src="${img}" alt="${escapeHTML(code)}" onerror="this.onerror=null;this.src='${PLACEHOLDER}'">
-          <div class="play-overlay"></div>
-        </div>
-      </div>
-
-      <div class="download-center">
-        <a class="download-btn" href="${escapeAttr(post.LINK||'#')}" target="_blank" rel="noopener">Watch and Download</a>
-      </div>
-
-      <div style="text-align:center;margin-top:10px;color:var(--muted)">
-        <div><strong>Actress:</strong> ${actressHTML}</div>
-        <div><strong>Actor:</strong> ${escapeHTML(actor)}</div>
-        <div><strong>Studio:</strong> ${escapeHTML(studio)}</div>
-        <div style="margin-top:8px"><strong>Tags:</strong> ${tagsHTML || '<span style="color:var(--muted)">—</span>'}</div>
-      </div>
-
-      <a class="back" href="javascript:resetToHome()">Back to List</a>
-
-      <div class="related-section">
-        <h3 class="related-title">Related Posts</h3>
-        <div class="related-grid">${relatedHTML}</div>
-      </div>
-    </div>
-  `;
-}
-
-/* helper: search tag/actress from detail */
-function searchTag(tag){
-  el('search').value = tag;
+// === Helpers ===
+function filterTag(tag) {
+  document.getElementById("searchInput").value = tag;
   doSearch();
-  // scroll top will be handled by renderList
 }
-
-/* reset to home (clean search) */
-function resetToHome(){
-  el('search').value = '';
-  el('topMsg').classList.add('hidden');
-  el('topMsg').textContent = '';
-  filteredPosts = fullPosts.slice();
+function goHome() {
+  document.getElementById("searchInput").value = "";
   renderList(1);
 }
 
-/* popup handling */
-function showPopupIfNeeded(){
-  try{
-    if(localStorage.getItem('popupClosed')) return;
-  }catch(e){}
-  const popup = el('popup');
-  popup.classList.remove('hidden');
-}
-el('popupClose')?.addEventListener('click', ()=>{
-  el('popup').classList.add('hidden');
-  try{ localStorage.setItem('popupClosed','1'); }catch(e){}
-});
+// === Popup Close ===
+document.getElementById("popup-close").onclick = () => {
+  document.getElementById("popup").style.display = "none";
+};
 
-/* light mode toggle */
-el('modeToggle').addEventListener('click', ()=>{
-  document.body.classList.toggle('light');
-});
-
-/* search handlers */
-el('searchBtn').addEventListener('click', doSearch);
-el('search').addEventListener('keypress', e => { if(e.key === 'Enter') doSearch(); });
-
-/* small utility: escape js and html to avoid injection */
-function escapeJS(s){ return (s||'').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
-function escapeHTML(s){
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function escapeAttr(s){ return (s||'').replace(/"/g,'&quot;').replace(/'/g,"&#039;"); }
-
-/* init */
-fetchData = init;
-init();
+// === Run ===
+loadData();
 </script>
-
 </body>
 </html>
