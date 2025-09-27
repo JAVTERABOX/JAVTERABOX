@@ -12,14 +12,14 @@ async function fetchPosts() {
     const data = await response.json();
     console.log('Data OpenSheet:', data); // debug
 
-    // Filter baris dengan trigger FIX (M atau Trigger)
+    // Filter baris dengan trigger FIX1 sampai FIX4
     const filtered = data.filter(r => {
       const trigger = r.M || r.Trigger;
-      return trigger && trigger.toUpperCase().startsWith('FIX');
+      return trigger && ['FIX1','FIX2','FIX3','FIX4'].includes(trigger.toUpperCase());
     });
 
     if (filtered.length === 0) {
-      container.innerHTML = '<p>Tidak ada postingan dengan trigger FIX di Sheet.</p>';
+      container.innerHTML = '<p>Tidak ada postingan dengan trigger FIX1-FIX4 di Sheet.</p>';
       return;
     }
 
