@@ -50,8 +50,9 @@ function renderGrid(posts) {
     const div = document.createElement('div');
     div.classList.add('cover');
 
+    // Link ke detail.html dengan query parameter ?kode=...
     div.innerHTML = `
-      <a href="/${kode}">
+      <a href="detail.html?kode=${kode}">
         <img src="${image}" alt="${kode}" />
         <span class="kode">${kode}</span>
       </a>
