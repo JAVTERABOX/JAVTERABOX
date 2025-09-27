@@ -1,4 +1,4 @@
-// Spreadsheet ID yang benar
+// URL OpenSheet final
 const SHEET_URL = 'https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1';
 
 async function fetchPosts() {
@@ -10,11 +10,13 @@ async function fetchPosts() {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
     const data = await response.json();
+    console.log('Data OpenSheet:', data); // debug
 
-    console.log('Data dari OpenSheet:', data); // Debug: tampilkan JSON di console
-
-    // Filter hanya baris yang ada trigger FIX
-    const filtered = data.filter(r => r.M && r.M.toUpperCase().startsWith('FIX'));
+    // Filter baris dengan trigger FIX (M atau Trigger)
+    const filtered = data.filter(r => {
+      const trigger = r.M || r.Trigger;
+      return trigger && trigger.toUpperCase().startsWith('FIX');
+    });
 
     if (filtered.length === 0) {
       container.innerHTML = '<p>Tidak ada postingan dengan trigger FIX di Sheet.</p>';
@@ -33,13 +35,13 @@ function renderPosts(posts) {
   container.innerHTML = '';
 
   posts.forEach(post => {
-    const kode = post.F || 'Unknown';
-    const actres = post.G || '-';
-    const actor = post.H || '-';
-    const label = post.I || '-';
+    const kode = post.F || post.Kode || 'Unknown';
+    const actres = post.G || post.Actres || '-';
+    const actor = post.H || post.Actor || '-';
+    const label = post.I || post.Label || '-';
     const tags = post.J ? post.J.split(',').map(t => `<span class="tag">${t.trim()}</span>`).join(' ') : '';
-    const image = post.K || '';
-    const download = post.A || '#';
+    const image = post.K || post.Image || '';
+    const download = post.A || post.Download || '#';
 
     const div = document.createElement('div');
     div.classList.add('post');
