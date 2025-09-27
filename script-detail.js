@@ -1,9 +1,15 @@
 const SHEET_URL = 'https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1';
 
 async function fetchDetail() {
-  const kodePage = window.location.pathname.slice(1); // ambil /NAMA_KODE
+  const urlParams = new URLSearchParams(window.location.search);
+  const kodePage = urlParams.get('kode'); // ambil ?kode=NAMA_KODE
   const container = document.getElementById('detail');
   container.innerHTML = '<p>Memuat data...</p>';
+
+  if (!kodePage) {
+    container.innerHTML = '<p>Kode postingan tidak ditemukan.</p>';
+    return;
+  }
 
   try {
     const response = await fetch(SHEET_URL);
@@ -42,7 +48,7 @@ function renderDetail(post) {
       <p><strong>Label:</strong> ${label}</p>
       <p class="tags">${tags}</p>
       <a href="${download}" target="_blank">Download</a>
-      <br><a href="/">Kembali ke daftar</a>
+      <br><a href="index.html">Kembali ke daftar</a>
     </div>
   `;
 }
