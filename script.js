@@ -1,5 +1,9 @@
-// URL OpenSheet final
 const SHEET_URL = 'https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1';
+const POSTS_PER_PAGE = 20;
+
+// Ambil nomor halaman dari URL: ?page=1
+const urlParams = new URLSearchParams(window.location.search);
+const page = parseInt(urlParams.get('page')) || 1;
 
 async function fetchPosts() {
   const container = document.getElementById('posts');
@@ -10,57 +14,67 @@ async function fetchPosts() {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
     const data = await response.json();
-    console.log('Data OpenSheet:', data); // debug
 
-    // Filter semua baris yang ada trigger (FIX1, FIX2, dst.)
+    // Filter semua trigger FIX
     const filtered = data.filter(r => {
       const trigger = r.M || r.Trigger || r["undefined"];
       return trigger && trigger.toUpperCase().startsWith('FIX');
     });
 
     if (filtered.length === 0) {
-      container.innerHTML = '<p>Tidak ada postingan dengan trigger FIX di Sheet.</p>';
+      container.innerHTML = '<p>Tidak ada postingan.</p>';
       return;
     }
 
-    renderPosts(filtered);
+    renderGrid(filtered);
   } catch (err) {
-    console.error('Gagal fetch data dari OpenSheet:', err);
-    container.innerHTML = `<p style="color:red;">Gagal memuat data. Cek console untuk detail error.<br>${err}</p>`;
+    console.error(err);
+    container.innerHTML = `<p style="color:red;">Gagal memuat data.<br>${err}</p>`;
   }
 }
 
-function renderPosts(posts) {
+function renderGrid(posts) {
   const container = document.getElementById('posts');
   container.innerHTML = '';
 
-  posts.forEach(post => {
-    const kode = post.CODE || 'Unknown';
-    const actres = post.Actress || '-';
-    const actor = post.Actor || '-';
-    const label = post.Studio || '-';
-    const tags = post.Tags ? post.Tags.split(',').map(t => `<span class="tag">${t.trim()}</span>`).join(' ') : '';
-    const image = post['LINK FOTO'] || '';
-    const download = post.LINK || '#';
+  const start = (page - 1) * POSTS_PER_PAGE;
+  const end = start + POSTS_PER_PAGE;
+  const pagePosts = posts.slice(start, end);
 
+  const grid = document.createElement('div');
+  grid.classList.add('grid');
+
+  pagePosts.forEach(post => {
+    const kode = post.CODE || 'Unknown';
+    const image = post['LINK FOTO'] || '';
     const div = document.createElement('div');
-    div.classList.add('post');
+    div.classList.add('cover');
 
     div.innerHTML = `
-      ${image ? `<img src="${image}" alt="${kode}" />` : ''}
-      <div class="post-content">
-        <h2>${kode}</h2>
-        <p><strong>Actres:</strong> ${actres}</p>
-        <p><strong>Actor:</strong> ${actor}</p>
-        <p><strong>Label:</strong> ${label}</p>
-        <p class="tags">${tags}</p>
-        <a href="${download}" target="_blank">Download</a>
-      </div>
+      <a href="/${kode}">
+        <img src="${image}" alt="${kode}" />
+        <span class="kode">${kode}</span>
+      </a>
     `;
-
-    container.appendChild(div);
+    grid.appendChild(div);
   });
+
+  container.appendChild(grid);
+
+  // Pagination
+  const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
+  const pagination = document.createElement('div');
+  pagination.classList.add('pagination');
+
+  for (let i = 1; i <= totalPages; i++) {
+    const a = document.createElement('a');
+    a.href = `?page=${i}`;
+    a.textContent = i;
+    if (i === page) a.classList.add('active');
+    pagination.appendChild(a);
+  }
+
+  container.appendChild(pagination);
 }
 
-// Jalankan fetch saat halaman load
 fetchPosts();
