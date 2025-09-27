@@ -2,175 +2,156 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>JAVTerabox</title>
-  <link rel="icon" href="https://cdn-1.webcatalog.io/catalog/terabox/terabox-icon-filled-256.png?v=1757896627824" />
+  <link rel="icon" href="https://cdn-1.webcatalog.io/catalog/terabox/terabox-icon-filled-256.png?v=1757896627824"/>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
-      background: #111;
-      color: #fff;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    :root {
+      --bg: #ffffff;
+      --text: #111;
+      --card-bg: #f9f9f9;
+      --link: #c62828;
+    }
+    body.dark {
+      --bg: #121212;
+      --text: #e0e0e0;
+      --card-bg: #1f1f1f;
+      --link: #ef5350;
     }
     header {
-      background: #b30000;
-      padding: 15px;
-      text-align: center;
-      font-size: 1.5em;
-      font-weight: bold;
+      background: var(--link);
+      color: #fff;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 {
+      margin: 0;
       cursor: pointer;
     }
-    header span { color: #fff; text-decoration: none; }
-
-    .search-box {
-      text-align: center;
-      margin: 15px;
+    #theme-toggle {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
     }
-    .search-box input {
+    #search-container {
+      padding: 10px;
+      text-align: center;
+    }
+    #search {
       padding: 8px;
-      width: 70%;
+      width: 80%;
       max-width: 400px;
     }
-    .search-box button {
-      padding: 8px 15px;
-      margin-left: 5px;
-      background: #b30000;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-    }
-
-    .grid {
+    #posts {
       display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
       gap: 15px;
       padding: 15px;
     }
-    @media (min-width: 1024px) {
-      .grid { grid-template-columns: repeat(5, 1fr); }
-    }
-    @media (max-width: 1023px) and (min-width: 600px) {
-      .grid { grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (max-width: 599px) {
-      .grid { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    .card {
-      background: #1a1a1a;
+    .post {
+      background: var(--card-bg);
       border-radius: 8px;
       overflow: hidden;
       text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       cursor: pointer;
-      transition: transform .2s;
     }
-    .card:hover { transform: scale(1.03); }
-    .card img {
+    .post img {
       width: 100%;
-      height: 180px;
+      height: 280px;
       object-fit: cover;
       display: block;
     }
-    .card h3 {
-      font-size: 0.9em;
-      padding: 8px;
-      margin: 0;
-      color: #fff;
+    .post h2 {
+      margin: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--link);
     }
-
-    .pagination {
-      text-align: center;
-      margin: 20px;
-    }
-    .pagination button {
-      margin: 0 3px;
-      padding: 6px 12px;
-      border: none;
-      background: #b30000;
-      color: #fff;
-      cursor: pointer;
-    }
-    .pagination button.active { background: #e60000; }
-
-    .detail {
+    /* Detail */
+    #detail {
       padding: 20px;
       max-width: 800px;
       margin: auto;
+      display: none;
     }
-    .detail img {
+    #detail img {
       width: 100%;
-      border-radius: 10px;
-      display: block;
-      margin: auto;
+      max-height: 450px;
+      object-fit: contain;
       position: relative;
     }
-    .play-overlay {
+    .play-btn {
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 60px;
-      color: white;
+      transform: translate(-50%,-50%);
+      width: 70px;
       opacity: 0.8;
       pointer-events: none;
     }
-    .detail h2 {
-      margin-top: 15px;
-      font-size: 1.4em;
-      text-align: center;
-    }
-    .tags span {
+    .btn {
       display: inline-block;
-      margin: 5px;
-      padding: 5px 10px;
-      background: #333;
-      border-radius: 5px;
-      font-size: 0.85em;
-      cursor: pointer;
-    }
-    .download-btn {
-      display: block;
-      margin: 20px auto;
-      padding: 12px 25px;
-      background: #b30000;
+      margin: 15px auto;
+      padding: 10px 20px;
+      background: var(--link);
       color: #fff;
-      text-align: center;
-      border-radius: 5px;
       text-decoration: none;
-      font-weight: bold;
+      border-radius: 5px;
+      text-align: center;
     }
-
-    .related {
-      margin-top: 40px;
+    #related {
+      margin-top: 30px;
     }
-    .related h3 {
-      margin-bottom: 10px;
-      border-bottom: 2px solid #b30000;
-      display: inline-block;
+    #pagination {
+      text-align: center;
+      margin: 20px 0;
     }
-
-    /* === Popup Telegram === */
+    #pagination button {
+      margin: 0 5px;
+      padding: 5px 10px;
+      background: var(--link);
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    /* Telegram Popup */
     #popup {
       position: fixed;
-      bottom: 80px;
       right: 20px;
-      background: #fff;
-      color: #000;
+      bottom: 80px;
+      background: var(--card-bg);
       padding: 10px 15px;
-      border-radius: 8px;
+      border-radius: 12px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
       display: flex;
       align-items: center;
       gap: 10px;
-      z-index: 1000;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      z-index: 50;
     }
     #popup img {
-      width: 30px;
-      height: 30px;
+      width: 24px;
     }
     #popup a {
-      color: #000;
-      text-decoration: none;
+      color: var(--link);
       font-weight: bold;
+      text-decoration: none;
     }
     #popup-close {
       margin-left: 10px;
@@ -179,211 +160,183 @@
   </style>
 </head>
 <body>
-  <header onclick="goHome()"><span>JAVTerabox</span></header>
-  
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Search by code, actress, tags..." />
-    <button onclick="doSearch()">Search</button>
+  <header>
+    <h1 onclick="goHome()">JAVTerabox</h1>
+    <button id="theme-toggle">🌙</button>
+  </header>
+
+  <div id="search-container">
+    <input type="text" id="search" placeholder="Search actress, code, or tags"/>
   </div>
 
-  <main id="app"></main>
+  <div id="posts"></div>
+  <div id="detail"></div>
+  <div id="pagination"></div>
 
-  <!-- === POPUP TELEGRAM === -->
+  <!-- Telegram Popup -->
   <div id="popup">
     <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram">
     <a href="https://t.me/asetplay" target="_blank">Join Telegram</a>
     <span id="popup-close">&#x2715;</span>
   </div>
 
-<script>
-const SHEET_URL = "https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1";
-let allData = [];
-let currentPage = 1;
-let perPage = 20;
-let currentView = "list"; // list | detail | search
-let currentSearch = "";
+  <script>
+    const SHEET_URL = "https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1";
+    let allPosts = [];
+    let currentPage = 1;
+    const perPage = 20;
 
-// === Fetch data ===
-async function loadData() {
-  const res = await fetch(SHEET_URL);
-  allData = await res.json();
-  // sort agar terbaru muncul di page 1
-  allData.reverse();
-  renderList(1);
-}
+    async function fetchPosts() {
+      const res = await fetch(SHEET_URL);
+      allPosts = await res.json();
+      allPosts.reverse(); // terbaru di page 1
+      renderList();
+    }
 
-// === Render List ===
-function renderList(page) {
-  currentView = "list";
-  currentSearch = "";
-  currentPage = page;
-  const app = document.getElementById("app");
-  app.innerHTML = "";
+    function renderList() {
+      document.getElementById("detail").style.display = "none";
+      const container = document.getElementById("posts");
+      container.style.display = "grid";
+      container.innerHTML = "";
 
-  let start = (page - 1) * perPage;
-  let end = start + perPage;
-  let items = allData.slice(start, end);
+      let start = (currentPage-1)*perPage;
+      let pagePosts = allPosts.slice(start, start+perPage);
 
-  const grid = document.createElement("div");
-  grid.className = "grid";
+      pagePosts.forEach(p=>{
+        const div = document.createElement("div");
+        div.className="post";
+        div.onclick = ()=>renderDetail(p);
+        div.innerHTML = `
+          <img src="${p['LINK FOTO']}" alt="${p.CODE}" loading="lazy"/>
+          <h2>${p.CODE} ${p.Actress||''}</h2>
+        `;
+        container.appendChild(div);
+      });
 
-  items.forEach(item => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.onclick = () => renderDetail(item);
-    card.innerHTML = `
-      <img src="${item['LINK FOTO'] || ''}" alt="${item.CODE}">
-      <h3>${item.CODE} ${item.Actress || ""}</h3>
-    `;
-    grid.appendChild(card);
-  });
+      renderPagination();
+    }
 
-  app.appendChild(grid);
-  renderPagination(page);
-  window.scrollTo(0,0);
-}
+    function renderPagination() {
+      const totalPages = Math.ceil(allPosts.length/perPage);
+      const pagination = document.getElementById("pagination");
+      pagination.innerHTML = "";
 
-// === Render Pagination ===
-function renderPagination(page) {
-  const app = document.getElementById("app");
-  const totalPages = Math.ceil(allData.length / perPage);
-  const pag = document.createElement("div");
-  pag.className = "pagination";
+      let start = Math.max(1, currentPage-2);
+      let end = Math.min(totalPages, start+4);
 
-  let start = Math.max(1, page - 2);
-  let end = Math.min(totalPages, start + 4);
+      if (currentPage>1) {
+        let prev = document.createElement("button");
+        prev.innerText = "<";
+        prev.onclick = ()=>{currentPage--;renderList();scrollTop()};
+        pagination.appendChild(prev);
+      }
 
-  if (start > 1) {
-    const prev = document.createElement("button");
-    prev.textContent = "<";
-    prev.onclick = () => renderList(start - 1);
-    pag.appendChild(prev);
-  }
+      for(let i=start;i<=end;i++){
+        let btn=document.createElement("button");
+        btn.innerText=i;
+        if(i===currentPage) btn.style.background="#555";
+        btn.onclick=()=>{currentPage=i;renderList();scrollTop()};
+        pagination.appendChild(btn);
+      }
 
-  for (let i = start; i <= end; i++) {
-    const btn = document.createElement("button");
-    btn.textContent = i;
-    if (i === page) btn.classList.add("active");
-    btn.onclick = () => renderList(i);
-    pag.appendChild(btn);
-  }
+      if(currentPage<totalPages){
+        let next = document.createElement("button");
+        next.innerText = ">";
+        next.onclick=()=>{currentPage++;renderList();scrollTop()};
+        pagination.appendChild(next);
+      }
+    }
 
-  if (end < totalPages) {
-    const next = document.createElement("button");
-    next.textContent = ">";
-    next.onclick = () => renderList(end + 1);
-    pag.appendChild(next);
-  }
+    function renderDetail(p) {
+      const posts = document.getElementById("posts");
+      posts.style.display="none";
+      const d = document.getElementById("detail");
+      d.style.display="block";
+      d.innerHTML=`
+        <div style="position:relative;">
+          <img src="${p['LINK FOTO']}" alt="${p.CODE}"/>
+          <img src="https://cdn-icons-png.flaticon.com/512/727/727245.png" class="play-btn"/>
+        </div>
+        <h2 onclick="window.open('${p.LINK}','_blank')" style="cursor:pointer;">${p.CODE} ${p.Actress||''}</h2>
+        <p><b>Actor:</b> ${p.Actor||'-'} | <b>Studio:</b> ${p.Studio||'-'}</p>
+        <p>${p.Tags||''}</p>
+        <a href="${p.LINK}" target="_blank" class="btn">Watch and Download</a>
+        <div id="related"></div>
+        <div style="text-align:center;margin-top:20px;">
+          <a href="#" onclick="goHome()" class="btn">Back to List</a>
+        </div>
+      `;
+      renderRelated(p);
+      scrollTop();
+    }
 
-  app.appendChild(pag);
-}
+    function renderRelated(post) {
+      const r = document.getElementById("related");
+      let idx = allPosts.findIndex(x=>x.CODE===post.CODE);
+      let related = allPosts.slice(idx+1, idx+11);
+      if(related.length){
+        r.innerHTML = "<h3>Related Posts</h3>";
+        related.forEach(p=>{
+          let div=document.createElement("div");
+          div.className="post";
+          div.onclick=()=>renderDetail(p);
+          div.innerHTML=`
+            <img src="${p['LINK FOTO']}" alt="${p.CODE}" loading="lazy"/>
+            <h2>${p.CODE} ${p.Actress||''}</h2>
+          `;
+          r.appendChild(div);
+        });
+      }
+    }
 
-// === Render Detail ===
-function renderDetail(item) {
-  currentView = "detail";
-  const app = document.getElementById("app");
-  app.innerHTML = "";
+    function scrollTop(){
+      window.scrollTo({top:0,behavior:"smooth"});
+    }
 
-  const div = document.createElement("div");
-  div.className = "detail";
+    function goHome(){
+      currentPage=1;
+      renderList();
+      scrollTop();
+    }
 
-  div.innerHTML = `
-    <div style="position:relative;">
-      <a href="${item.LINK}" target="_blank">
-        <img src="${item['LINK FOTO']}" alt="${item.CODE}">
-        <div class="play-overlay">▶</div>
-      </a>
-    </div>
-    <h2><a href="${item.LINK}" target="_blank" style="color:white; text-decoration:none;">${item.CODE} ${item.Actress || ""}</a></h2>
-    <p><strong>Actor:</strong> ${item.Actor || "-"}</p>
-    <p><strong>Studio:</strong> ${item.Studio || "-"}</p>
-    <div class="tags">
-      ${(item.Tags || "").split(",").map(t => `<span onclick="filterTag('${t.trim()}')">${t.trim()}</span>`).join("")}
-    </div>
-    <a class="download-btn" href="${item.LINK}" target="_blank">Watch and Download</a>
-  `;
+    // Search
+    document.getElementById("search").addEventListener("keypress", e=>{
+      if(e.key==="Enter"){
+        const q=e.target.value.toLowerCase();
+        if(!q){renderList();return;}
+        const result=allPosts.filter(p=>
+          (p.CODE||"").toLowerCase().includes(q) ||
+          (p.Actress||"").toLowerCase().includes(q) ||
+          (p.Tags||"").toLowerCase().includes(q)
+        );
+        document.getElementById("posts").innerHTML="";
+        result.forEach(p=>{
+          const div=document.createElement("div");
+          div.className="post";
+          div.onclick=()=>renderDetail(p);
+          div.innerHTML=`
+            <img src="${p['LINK FOTO']}" alt="${p.CODE}" loading="lazy"/>
+            <h2>${p.CODE} ${p.Actress||''}</h2>
+          `;
+          document.getElementById("posts").appendChild(div);
+        });
+        if(!result.length){
+          document.getElementById("posts").innerHTML="<p>No result found</p>";
+        }
+      }
+    });
 
-  // related posts
-  const related = document.createElement("div");
-  related.className = "related";
-  related.innerHTML = "<h3>Related Posts</h3>";
+    // Theme toggle
+    document.getElementById("theme-toggle").onclick=()=>{
+      document.body.classList.toggle("dark");
+    };
 
-  const grid = document.createElement("div");
-  grid.className = "grid";
-  let others = allData.filter(d => d.CODE !== item.CODE).slice(0,8);
-  others.forEach(r => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.onclick = () => renderDetail(r);
-    card.innerHTML = `
-      <img src="${r['LINK FOTO']}" alt="${r.CODE}">
-      <h3>${r.CODE} ${r.Actress || ""}</h3>
-    `;
-    grid.appendChild(card);
-  });
-  related.appendChild(grid);
+    // Popup close
+    document.getElementById("popup-close").onclick=()=>{
+      document.getElementById("popup").style.display="none";
+    };
 
-  div.appendChild(related);
-  app.appendChild(div);
-  window.scrollTo(0,0);
-}
-
-// === Search ===
-function doSearch() {
-  const val = document.getElementById("searchInput").value.trim().toLowerCase();
-  currentSearch = val;
-  if (!val) return renderList(1);
-
-  const results = allData.filter(r =>
-    (r.CODE || "").toLowerCase().includes(val) ||
-    (r.Actress || "").toLowerCase().includes(val) ||
-    (r.Tags || "").toLowerCase().includes(val)
-  );
-
-  const app = document.getElementById("app");
-  app.innerHTML = "";
-
-  if (results.length === 0) {
-    app.innerHTML = `<p style="text-align:center;margin-top:50px;">No results found. Showing related:</p>`;
-    renderList(1);
-    return;
-  }
-
-  const grid = document.createElement("div");
-  grid.className = "grid";
-
-  results.forEach(item => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.onclick = () => renderDetail(item);
-    card.innerHTML = `
-      <img src="${item['LINK FOTO'] || ''}" alt="${item.CODE}">
-      <h3>${item.CODE} ${item.Actress || ""}</h3>
-    `;
-    grid.appendChild(card);
-  });
-
-  app.appendChild(grid);
-  window.scrollTo(0,0);
-}
-
-// === Helpers ===
-function filterTag(tag) {
-  document.getElementById("searchInput").value = tag;
-  doSearch();
-}
-function goHome() {
-  document.getElementById("searchInput").value = "";
-  renderList(1);
-}
-
-// === Popup Close ===
-document.getElementById("popup-close").onclick = () => {
-  document.getElementById("popup").style.display = "none";
-};
-
-// === Run ===
-loadData();
-</script>
+    fetchPosts();
+  </script>
 </body>
 </html>
