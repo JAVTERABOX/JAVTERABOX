@@ -1,4 +1,3 @@
-// URL OpenSheet final
 const SHEET_URL = 'https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1';
 
 async function fetchPosts() {
@@ -12,9 +11,9 @@ async function fetchPosts() {
     const data = await response.json();
     console.log('Data OpenSheet:', data); // debug
 
-    // Filter baris dengan trigger FIX1 sampai FIX4
+    // Filter FIX1 sampai FIX4 dari kolom undefined
     const filtered = data.filter(r => {
-      const trigger = r.M || r.Trigger;
+      const trigger = r.M || r.Trigger || r.undefined;
       return trigger && ['FIX1','FIX2','FIX3','FIX4'].includes(trigger.toUpperCase());
     });
 
@@ -35,13 +34,13 @@ function renderPosts(posts) {
   container.innerHTML = '';
 
   posts.forEach(post => {
-    const kode = post.F || post.Kode || 'Unknown';
-    const actres = post.G || post.Actres || '-';
-    const actor = post.H || post.Actor || '-';
-    const label = post.I || post.Label || '-';
-    const tags = post.J ? post.J.split(',').map(t => `<span class="tag">${t.trim()}</span>`).join(' ') : '';
-    const image = post.K || post.Image || '';
-    const download = post.A || post.Download || '#';
+    const kode = post.CODE || 'Unknown';
+    const actres = post.Actress || '-';
+    const actor = post.Actor || '-';
+    const label = post.Studio || '-';
+    const tags = post.Tags ? post.Tags.split(',').map(t => `<span class="tag">${t.trim()}</span>`).join(' ') : '';
+    const image = post['LINK FOTO'] || '';
+    const download = post.LINK || '#';
 
     const div = document.createElement('div');
     div.classList.add('post');
@@ -62,5 +61,4 @@ function renderPosts(posts) {
   });
 }
 
-// Jalankan fetch saat halaman load
 fetchPosts();
