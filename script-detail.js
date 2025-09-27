@@ -10,11 +10,11 @@ async function fetchDetail(){
     const data = await response.json();
     const post = data.find(r => (r.CODE||'').toUpperCase()===kodePage.toUpperCase());
     if(!post){ container.innerHTML='<p>Postingan tidak ditemukan.</p>'; return; }
-    renderDetail(post);
+    renderDetail(post, data);
   }catch(e){ container.innerHTML=`<p style="color:red;">Gagal memuat data.<br>${e}</p>`; }
 }
 
-function renderDetail(post){
+function renderDetail(post, allData){
   const kode = post.CODE || 'Unknown';
   const actres = post.Actress || '-';
   const actor = post.Actor || '-';
@@ -26,15 +26,40 @@ function renderDetail(post){
   container.innerHTML=`
     <div class="detail-post">
       <a href="${download}" target="_blank"><img src="${image}" alt="${kode}"></a>
-      <h2>${kode} - ${actres}</h2>
-      <p><strong>Actres:</strong> <a href="index.html?actres=${encodeURIComponent(actres)}">${actres}</a></p>
+      <h2>${kode} ${actres}</h2>
+      <p><strong>Actress:</strong> <a href="index.html?actres=${encodeURIComponent(actres)}">${actres}</a></p>
       <p><strong>Actor:</strong> ${actor}</p>
       <p><strong>Label:</strong> ${label}</p>
       <p>${tags}</p>
       <a href="${download}" class="btn-download" target="_blank">Download</a>
-      <a href="index.html" class="btn-back">Kembali ke daftar</a>
+      <a href="index.html?page=1" class="btn-back">Back to List</a>
     </div>
   `;
+
+  // Rekomendasi
+  const related = allData.filter(p => p.CODE!==kode).slice(0,8);
+  if(related.length>0){
+    const recDiv = document.createElement('div');
+    recDiv.classList.add('recommendations');
+    recDiv.innerHTML='<h3>Related Posts</h3>';
+    related.forEach(r=>{
+      const div = document.createElement('div');
+      div.classList.add('rec-post');
+      div.innerHTML = `
+        <a href="detail.html?kode=${r.CODE}">
+          <img src="${r['LINK FOTO']}" alt="${r.CODE}" loading="lazy">
+          <span>${r.CODE} ${r.Actress}</span>
+        </a>
+      `;
+      recDiv.appendChild(div);
+    });
+    container.appendChild(recDiv);
+  }
 }
+
+// Popup Telegram
+const popup = document.getElementById('popup');
+document.getElementById('popup-close').addEventListener('click', ()=> popup.style.display='none');
+setTimeout(()=>{ popup.style.display='block'; },3000);
 
 fetchDetail();
