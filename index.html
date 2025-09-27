@@ -1,28 +1,327 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JAVTerabox</title>
-<link rel="icon" href="https://cdn-1.webcatalog.io/catalog/terabox/terabox-icon-filled-256.png?v=1757896627824">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JAVTerabox</title>
+  <link rel="icon" href="https://cdn-1.webcatalog.io/catalog/terabox/terabox-icon-filled-256.png?v=1757896627824">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    :root {
+      --red: #d32f2f;
+      --bg: #111;
+      --text: #f1f1f1;
+      --card-bg: #1c1c1c;
+    }
+    .light {
+      --bg: #fff;
+      --text: #111;
+      --card-bg: #f9f9f9;
+    }
+    header {
+      background: var(--red);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    header h1 {
+      margin: 0;
+      cursor: pointer;
+    }
+    #search-container {
+      flex: 1;
+      margin: 0 20px;
+    }
+    #search-box {
+      width: 100%;
+      padding: 8px;
+      border-radius: 5px;
+      border: none;
+    }
+    #mode-toggle {
+      cursor: pointer;
+      background: #fff;
+      color: var(--red);
+      border: none;
+      padding: 6px 10px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .grid {
+      display: grid;
+      gap: 20px;
+      padding: 20px;
+    }
+    @media(min-width: 768px) {
+      .grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media(max-width: 767px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+    .card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+      loading: lazy;
+    }
+    .card h3 {
+      margin: 10px;
+      font-size: 14px;
+    }
+    .card small {
+      margin: 0 10px 10px;
+      color: #aaa;
+      display: block;
+    }
+    .pagination {
+      text-align: center;
+      padding: 20px;
+    }
+    .pagination button {
+      margin: 0 5px;
+      padding: 6px 12px;
+      border: none;
+      background: var(--red);
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .pagination button.active { background: #333; }
+    .detail {
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+    .breadcrumb {
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: #888;
+    }
+    .breadcrumb a { color: var(--red); text-decoration: none; }
+    .detail img {
+      width: 100%;
+      max-width: 600px;
+      margin: auto;
+      display: block;
+      position: relative;
+    }
+    .play-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 80px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .play-overlay:after {
+      content: '▶';
+      font-size: 40px;
+      color: #fff;
+    }
+    .download-btn {
+      display: block;
+      text-align: center;
+      background: var(--red);
+      color: #fff;
+      padding: 12px;
+      margin: 20px auto;
+      width: 250px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .tags, .actors {
+      margin: 10px 0;
+    }
+    .tags span, .actors span {
+      display: inline-block;
+      margin: 5px;
+      padding: 5px 10px;
+      background: var(--card-bg);
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .related {
+      margin-top: 30px;
+    }
+    .related h3 {
+      margin-bottom: 15px;
+    }
+    .popup {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #fff;
+      border: 2px solid var(--red);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      z-index: 2000;
+    }
+    .popup img {
+      width: 30px;
+      margin-right: 10px;
+    }
+    .popup a {
+      color: var(--red);
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .popup span {
+      margin-left: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-<header>
-  <h1><a href="index.html">JAVTerabox</a></h1>
-  <input type="text" id="search" placeholder="Search...">
-</header>
+  <header>
+    <h1 onclick="goHome()">JAVTerabox</h1>
+    <div id="search-container">
+      <input type="text" id="search-box" placeholder="Search Actress, Code, Tags...">
+    </div>
+    <button id="mode-toggle">☀️</button>
+  </header>
 
-<div id="posts" class="grid"></div>
-<div class="pagination" id="pagination"></div>
+  <div id="content"></div>
+  <div class="pagination" id="pagination"></div>
 
-<!-- Popup Telegram -->
-<div id="popup">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram">
-  <a href="https://t.me/asetplay" target="_blank">Join Telegram @ASETPLAY</a>
-  <span id="popup-close">&#x2715;</span>
-</div>
+  <!-- POPUP TELEGRAM -->
+  <div id="popup" class="popup">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg">
+    <a href="https://t.me/asetplay" target="_blank">Join Telegram</a>
+    <span id="popup-close">&#x2715;</span>
+  </div>
 
-<script src="script.js"></script>
+  <script>
+    const API_URL = "https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1";
+    const content = document.getElementById('content');
+    const pagination = document.getElementById('pagination');
+    const searchBox = document.getElementById('search-box');
+    let data = [];
+    let currentPage = 1;
+    const perPage = 20;
+
+    async function fetchData() {
+      const res = await fetch(API_URL);
+      data = await res.json();
+      data.reverse(); // terbaru di atas
+      renderPage();
+    }
+
+    function renderPage(page = 1) {
+      currentPage = page;
+      let query = searchBox.value.toLowerCase();
+      let filtered = data.filter(item =>
+        item.JUDUL.toLowerCase().includes(query) ||
+        item.CODE.toLowerCase().includes(query) ||
+        (item.Actress && item.Actress.toLowerCase().includes(query)) ||
+        (item.Tags && item.Tags.toLowerCase().includes(query))
+      );
+      if (filtered.length === 0 && query) {
+        filtered = data.filter(item =>
+          item.JUDUL.toLowerCase().includes(query.split(" ")[0]) ||
+          item.Tags.toLowerCase().includes(query.split(" ")[0])
+        );
+      }
+      const start = (page - 1) * perPage;
+      const paginated = filtered.slice(start, start + perPage);
+      content.innerHTML = `<div class="grid">${paginated.map(cardTemplate).join("")}</div>`;
+      renderPagination(filtered.length, page);
+    }
+
+    function cardTemplate(item) {
+      return `
+        <div class="card" onclick="viewDetail('${item.CODE}')">
+          <img src="${item['LINK FOTO']}" alt="${item.JUDUL}">
+          <h3>${item.CODE} ${item.Actress || ''}</h3>
+          <small>${item.JUDUL}</small>
+        </div>`;
+    }
+
+    function renderPagination(total, page) {
+      let totalPages = Math.ceil(total / perPage);
+      let html = '';
+      let start = Math.max(1, page - 2);
+      let end = Math.min(totalPages, page + 2);
+      if (page > 1) html += `<button onclick="renderPage(${page-1})"><</button>`;
+      for (let i = start; i <= end; i++) {
+        html += `<button onclick="renderPage(${i})" class="${i===page?'active':''}">${i}</button>`;
+      }
+      if (page < totalPages) html += `<button onclick="renderPage(${page+1})">></button>`;
+      pagination.innerHTML = html;
+    }
+
+    function viewDetail(code) {
+      const item = data.find(x => x.CODE === code);
+      if (!item) return;
+      content.innerHTML = `
+        <div class="detail">
+          <div class="breadcrumb"><a onclick="goHome()">Home</a> > ${item.Actress || ''} > ${item.CODE}</div>
+          <h2 onclick="window.open('${item.LINK}','_blank')">${item.JUDUL}</h2>
+          <div style="position:relative;display:inline-block;">
+            <img src="${item['LINK FOTO']}" alt="${item.JUDUL}">
+            <div class="play-overlay"></div>
+          </div>
+          <a class="download-btn" href="${item.LINK}" target="_blank">Watch and Download</a>
+          <div class="actors"><strong>Actress:</strong> ${(item.Actress||'').split(',').map(a=>`<span onclick="searchTag('${a.trim()}')">${a.trim()}</span>`).join(' ')}</div>
+          <div class="tags"><strong>Tags:</strong> ${(item.Tags||'').split(',').map(t=>`<span onclick="searchTag('${t.trim()}')">${t.trim()}</span>`).join(' ')}</div>
+          <div class="related">
+            <h3>Related Posts</h3>
+            <div class="grid">${data.slice(0,8).map(cardTemplate).join("")}</div>
+          </div>
+        </div>`;
+      pagination.innerHTML = "";
+    }
+
+    function searchTag(tag) {
+      searchBox.value = tag;
+      renderPage(1);
+    }
+
+    function goHome() { renderPage(1); }
+
+    searchBox.addEventListener("keypress", e => { if (e.key === "Enter") renderPage(1); });
+
+    document.getElementById('mode-toggle').onclick = () => {
+      document.body.classList.toggle("light");
+    };
+
+    document.getElementById('popup-close').onclick = () => {
+      document.getElementById('popup').style.display = "none";
+    };
+
+    fetchData();
+  </script>
 </body>
 </html>
