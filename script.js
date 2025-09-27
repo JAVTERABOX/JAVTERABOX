@@ -1,85 +1,86 @@
 const SHEET_URL = 'https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1';
 const POSTS_PER_PAGE = 20;
-const urlParams = new URLSearchParams(window.location.search);
-let page = parseInt(urlParams.get('page')) || 1;
-let filterKeyword = '';
 let allPosts = [];
 
-async function fetchPosts() {
+async function fetchPosts(){
   const container = document.getElementById('posts');
-  container.innerHTML = 'Memuat data...';
-  try {
+  container.innerHTML = '<p>Memuat data...</p>';
+  try{
     const response = await fetch(SHEET_URL);
+    if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
-    allPosts = data.filter(r => (r["undefined"] || '').toUpperCase().startsWith('FIX'));
-    renderPosts();
-  } catch(e) {
-    container.innerHTML = `<p style="color:red;">Gagal memuat data. ${e}</p>`;
+    // Filter & reverse
+    allPosts = data.filter(r => (r['undefined']||'').toUpperCase().startsWith('FIX')).reverse();
+    renderPage(1);
+  }catch(err){
+    container.innerHTML = `<p style="color:red;">Gagal memuat data.<br>${err}</p>`;
   }
 }
 
-function renderPosts() {
-  let filtered = allPosts;
-  if(filterKeyword) {
-    filtered = filtered.filter(p => {
-      const kw = filterKeyword.toLowerCase();
-      return (p.CODE && p.CODE.toLowerCase().includes(kw)) ||
-             (p.Actress && p.Actress.toLowerCase().includes(kw)) ||
-             (p.Actor && p.Actor.toLowerCase().includes(kw)) ||
-             (p.Tags && p.Tags.toLowerCase().includes(kw));
-    });
-  }
-
-  const start = (page-1)*POSTS_PER_PAGE;
-  const pagePosts = filtered.slice(start, start+POSTS_PER_PAGE);
-
+function renderPage(page){
   const container = document.getElementById('posts');
   container.innerHTML = '';
+  const totalPages = Math.ceil(allPosts.length/POSTS_PER_PAGE);
+  if(page>totalPages) page=totalPages;
 
-  const grid = document.createElement('div');
-  grid.classList.add('grid');
+  const start = (page-1)*POSTS_PER_PAGE;
+  const end = start+POSTS_PER_PAGE;
+  const pagePosts = allPosts.slice(start,end);
 
-  pagePosts.forEach(post => {
-    const kode = post.CODE || 'Unknown';
-    const actres = post.Actress || '-';
-    const image = post['LINK FOTO'] || '';
+  pagePosts.forEach(post=>{
+    const kode = post.CODE||'Unknown';
+    const actres = post.Actress||'-';
+    const image = post["LINK FOTO"]||'';
+    const download = post.LINK||'#';
+
     const div = document.createElement('div');
     div.classList.add('cover');
     div.innerHTML = `
-      <a href="detail.html?kode=${kode}">
-        <img src="${image}" alt="${kode}" loading="lazy">
-        <span class="overlay">${kode} ${actres}</span>
-      </a>`;
-    grid.appendChild(div);
+      <a href="detail.html?code=${kode}" class="cover-wrapper">
+        <img src="${image}" alt="${kode}">
+        <div class="play-button">&#9658;</div>
+        <div class="overlay">${kode} ${actres}</div>
+      </a>
+    `;
+    container.appendChild(div);
   });
-  container.appendChild(grid);
 
   // Pagination
-  const totalPages = Math.ceil(filtered.length/POSTS_PER_PAGE);
-  const pagination = document.createElement('div');
-  pagination.classList.add('pagination');
+  const pagination = document.getElementById('pagination');
+  pagination.innerHTML = '';
   for(let i=1;i<=totalPages;i++){
     const a = document.createElement('a');
-    a.href = `?page=${i}`;
-    a.textContent = i;
-    if(i===page) a.classList.add('active');
+    a.href="#";
+    a.textContent=i;
+    if(i===page)a.classList.add('active');
+    a.addEventListener('click',(e)=>{
+      e.preventDefault();
+      renderPage(i);
+      window.scrollTo(0,0);
+    });
     pagination.appendChild(a);
   }
-  container.appendChild(pagination);
 }
 
-// Search bar: hanya aktif saat Enter
-document.getElementById('search').addEventListener('keypress', e=>{
+// Search
+document.getElementById('search').addEventListener('keypress', function(e){
   if(e.key==='Enter'){
-    filterKeyword = e.target.value.trim();
-    page=1;
-    renderPosts();
+    const val = this.value.trim().toLowerCase();
+    const filtered = allPosts.filter(p=>{
+      return (p.CODE||'').toLowerCase().includes(val) || (p.Actress||'').toLowerCase().includes(val) || (p.Tags||'').toLowerCase().includes(val);
+    });
+    if(filtered.length===0) alert('No results found');
+    else {
+      allPosts = filtered;
+      renderPage(1);
+    }
   }
 });
 
-// Telegram popup
-const popup = document.getElementById('popup');
-document.getElementById('popup-close').addEventListener('click', ()=> popup.style.display='none');
-setTimeout(()=>{ popup.style.display='block'; },3000);
-
 fetchPosts();
+
+// Popup Telegram
+const popup=document.getElementById('popup');
+const closeBtn=document.getElementById('popup-close');
+window.addEventListener('load',()=>popup.style.display='block');
+closeBtn.addEventListener('click',()=>popup.style.display='none');
