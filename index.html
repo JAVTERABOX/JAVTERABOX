@@ -33,5 +33,25 @@
 </div>
 
 <script src="script.js"></script>
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const popup = document.getElementById('popup');
+  const closeBtn = document.getElementById('popupClose');
+
+  if (popup) {
+    // Pastikan popup muncul di HP walau JS lain lambat
+    popup.classList.remove('hidden');
+    popup.style.display = 'block';
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      popup.style.display = 'none';
+    });
+  }
+});
+</script>
+
 </body>
 </html>
+
