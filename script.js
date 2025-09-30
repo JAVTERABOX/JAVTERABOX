@@ -1,42 +1,37 @@
-const SHEET_URL = 'https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6JjZF6z8-JcqZkWGHrVoCI/Sheet1';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JAVTerabox</title>
+<link rel="icon" href="https://cdn-1.webcatalog.io/catalog/terabox/terabox-icon-filled-256.png?v=1757896627824" type="image/png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-async function fetchPosts() {
-  try {
-    const response = await fetch(SHEET_URL);
-    const data = await response.json();
+<header>
+  <div id="logo" onclick="resetToHome()">JAVTerabox</div>
+  <div id="search-wrap">
+    <input id="search" type="text" placeholder="Search Code, Actress, Tags..." />
+    <button id="searchBtn">Search</button>
+  </div>
+</header>
 
-    const filtered = data.filter(r => r.M && r.M.startsWith('FIX'));
-    renderPosts(filtered);
-  } catch (err) {
-    console.error('Gagal fetch data dari OpenSheet:', err);
-    document.getElementById('posts').innerHTML = '<p style="color:red;">Gagal memuat data.</p>';
-  }
-}
+<main id="main">
+  <div id="listView">
+    <div id="topMsg" class="msg hidden"></div>
+    <div id="grid" class="grid"></div>
+    <div id="pagination" class="pagination"></div>
+  </div>
+  <div id="detailView" class="hidden"></div>
+</main>
 
-function renderPosts(posts) {
-  const container = document.getElementById('posts');
-  container.innerHTML = '';
+<div id="popup" class="popup hidden">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram" />
+  <a href="https://t.me/asetplay" target="_blank">Join Telegram @ASETPLAY</a>
+  <div class="close" id="popupClose">✕</div>
+</div>
 
-  posts.forEach(post => {
-    const div = document.createElement('div');
-    div.classList.add('post');
-
-    const tagsHTML = post.J ? post.J.split(',').map(t => `<span>${t.trim()}</span>`).join('') : '';
-
-    div.innerHTML = `
-      <img src="${post.K}" alt="${post.F}" />
-      <div class="post-content">
-        <h2>${post.F}</h2>
-        <p><strong>Actres:</strong> ${post.G}</p>
-        <p><strong>Actor:</strong> ${post.H}</p>
-        <p><strong>Label:</strong> ${post.I}</p>
-        <p class="tags">${tagsHTML}</p>
-        <a href="${post.A}" target="_blank">Download</a>
-      </div>
-    `;
-
-    container.appendChild(div);
-  });
-}
-
-fetchPosts();
+<script src="script.js"></script>
+</body>
+</html>
