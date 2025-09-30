@@ -158,4 +158,18 @@ function resetToHome(){el('search').value='';el('topMsg').classList.add('hidden'
 
 // Popup
 function showPopupIfNeeded(){if(localStorage.getItem('popupClosed')) return; el('popup').classList.remove('hidden')}
-el('popupClose').addEventListener('click
+el('popupClose').addEventListener('click',()=>{el('popup').classList.add('hidden'); localStorage.setItem('popupClosed','1')})
+
+// Search event
+el('searchBtn').addEventListener('click',doSearch)
+el('search').addEventListener('keypress',e=>{if(e.key==='Enter') doSearch()})
+
+// Escape helpers
+function escapeJS(s){return(s||'').replace(/'/g,"\\'").replace(/"/g,'\\"')}
+function escapeHTML(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function escapeAttr(s){return(s||'').replace(/"/g,'&quot;').replace(/'/g,"&#039;")}
+
+// Listen hash change
+window.addEventListener('hashchange', handleHash);
+
+init();
