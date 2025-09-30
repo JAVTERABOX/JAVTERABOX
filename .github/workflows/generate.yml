@@ -1,1 +1,30 @@
 
+name: Generate Posts
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 * * * *' # otomatis update tiap jam, bisa diubah
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - name: Install Dependencies
+        run: npm install axios fs-extra
+      - name: Generate Posts
+        run: node generate.js
+      - name: Commit & Push
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Auto-update posts" || echo "No changes"
+          git push
