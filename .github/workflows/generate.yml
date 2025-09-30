@@ -1,11 +1,9 @@
 name: Generate Posts
 
 on:
-  push:
-    branches:
-      - main
   schedule:
-    - cron: '0 0 * * *'  # Update otomatis setiap hari jam 00:00 UTC
+    - cron: '0 * * * *'  # tiap jam
+  workflow_dispatch:       # bisa trigger manual dari GitHub
 
 jobs:
   build:
