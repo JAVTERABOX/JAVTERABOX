@@ -5,6 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>JAVTerabox</title>
 <link rel="icon" href="https://cdn-1.webcatalog.io/catalog/terabox/terabox-icon-filled-256.png" type="image/png">
+
+<!-- Default Meta -->
+<meta name="description" content="JAVTerabox – Watch and Download JAV movies.">
+<meta property="og:title" content="JAVTerabox">
+<meta property="og:description" content="Watch and Download JAV movies.">
+<meta property="og:image" content="https://via.placeholder.com/640x360?text=No+Image">
+<meta property="og:url" content="https://javterabox.fun">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="JAVTerabox">
+<meta name="twitter:description" content="Watch and Download JAV movies.">
+<meta name="twitter:image" content="https://via.placeholder.com/640x360?text=No+Image">
+
 <style>
 :root{
 --red:#d32f2f;--bg:#0f0f10;--card:#181818;--muted:#bdbdbd;--text:#f5f5f5;}
@@ -88,9 +101,9 @@ main{padding:18px;max-width:1300px;margin:0 auto}
 <script>
 const OPEN_SHEET='https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1';
 const PER_PAGE=20,MAX_PAGE_BUTTONS=5,PLACEHOLDER='https://via.placeholder.com/640x360?text=No+Image';
-let fullPosts=[],filteredPosts=[],currentPage=1,searchTimeout,pageCache={};
+let fullPosts=[],filteredPosts=[],currentPage=1,pageCache={};
 
-function el(id){return document.getElementById(id)}
+function el(id){return document.getElementById(id);}
 function safeImg(src){return src||PLACEHOLDER;}
 
 async function init(){
@@ -100,88 +113,78 @@ async function init(){
     const json=await resp.json();
     fullPosts=json.reverse();
     filteredPosts=fullPosts.slice();
-    // render page based on hash
     const hash=window.location.hash.slice(1);
     if(hash){
       if(hash.startsWith('page')){
-        const p = parseInt(hash.replace('page','')) || 1;
-        renderList(p);
-      } else {
-        openDetail(hash);
-      }
-    } else {
-      renderList(1);
-    }
+        const p=parseInt(hash.replace('page',''))||1; renderList(p);
+      } else openDetail(hash);
+    } else renderList(1);
   } catch(e){
     el('grid').innerHTML='<div class="msg">Failed to load data.</div>'
-  } finally {
+  } finally{
     el('spinner').style.display='none';
     setTimeout(showPopupIfNeeded,1200);
   }
 }
 
+// --- Render List with preload next page ---
 function renderList(page=1){
   currentPage=Math.max(1,Math.floor(page));
+  const total=filteredPosts.length,totalPages=Math.max(1,Math.ceil(total/PER_PAGE));
+  if(currentPage>totalPages) currentPage=totalPages;
   const start=(currentPage-1)*PER_PAGE;
-  const pageItems=filteredPosts.slice(start,start+PER_PAGE);
-  if(pageItems.length===0){el('grid').innerHTML='<div class="msg">No results.</div>';el('pagination').innerHTML='';return;}
 
-  // Use cache for page 1 to avoid reload images
-  if(pageCache[currentPage]){
-    el('grid').innerHTML = '';
-    pageCache[currentPage].forEach(card => el('grid').appendChild(card));
-  } else {
-    const cards = [];
-    pageItems.forEach(p=>{
-      const img=safeImg(p['LINK FOTO']);
-      const code=(p.CODE||'').trim();
-      const actress=(p.Actress||'').trim();
-      const card=document.createElement('div');
-      card.className='card';
-      card.onclick=()=>openDetail(code);
-      const thumb=document.createElement('div');
-      thumb.className='thumb';
-      const image=document.createElement('img');
-      image.src=img;
-      image.loading='lazy';
-      image.onerror=()=>image.src=PLACEHOLDER;
-      thumb.appendChild(image);
-      const title=document.createElement('div');
-      title.className='title';
-      title.textContent = code+' '+actress;
-      card.appendChild(thumb); card.appendChild(title);
-      el('grid').appendChild(card);
-      cards.push(card);
-    });
-    pageCache[currentPage]=cards;
+  let pageItems;
+  if(pageCache[currentPage]) pageItems=pageCache[currentPage];
+  else pageItems=pageCache[currentPage]=filteredPosts.slice(start,start+PER_PAGE);
+
+  if(pageItems.length===0){
+    el('grid').innerHTML='<div class="msg">No results.</div>';el('pagination').innerHTML='';return;
   }
 
-  renderPagination(Math.max(1,Math.ceil(filteredPosts.length/PER_PAGE)));
-  el('listView').classList.remove('hidden');
-  el('detailView').classList.add('hidden');
-  window.scrollTo({top:0,behavior:'smooth'});
-  history.pushState({view:'list', page: currentPage}, '', `#page${currentPage}`);
-  toggleScrollTopBtn();
+  el('grid').innerHTML=pageItems.map(p=>{
+    const img=safeImg(p['LINK FOTO']);const code=(p.CODE||'').trim();const actress=(p.Actress||'').trim();
+    return `<div class="card" onclick="openDetail('${escapeJS(code)}')">
+      <div class="thumb"><img src="${img}" loading="lazy" onerror="this.src='${PLACEHOLDER}'" alt="${escapeHTML(code+' '+actress)}"/></div>
+      <div class="title">${escapeHTML(code+' '+actress)}</div></div>`;
+  }).join('');
+
+  renderPagination(totalPages);
+  el('listView').classList.remove('hidden');el('detailView').classList.add('hidden');window.scrollTo({top:0,behavior:'smooth'});
+  history.replaceState({view:'list',page:currentPage}, '', `#page${currentPage}`);
+
+  // Preload next page thumbnails
+  if(currentPage<totalPages){
+    const nextStart=currentPage*PER_PAGE;
+    const nextItems=filteredPosts.slice(nextStart,nextStart+PER_PAGE);
+    nextItems.forEach(p=>{
+      const img=new Image(); img.src=safeImg(p['LINK FOTO']);
+    });
+  }
 }
 
+// --- Pagination ---
 function renderPagination(totalPages){
   const c=el('pagination');if(totalPages<=1){c.innerHTML='';return;}
   let s=currentPage-Math.floor(MAX_PAGE_BUTTONS/2);if(s<1)s=1;
   let e=s+MAX_PAGE_BUTTONS-1;if(e>totalPages){e=totalPages;s=Math.max(1,e-MAX_PAGE_BUTTONS+1);}
   let html='';if(currentPage>1)html+=`<button class="pg-btn" onclick="renderList(${currentPage-1})">&lt;</button>`;
-  for(let i=s;i<=e;i++){html+=`<button class="pg-btn ${i===currentPage?'active':''}" onclick="renderList(${i})">${i}</button>`}
-  if(currentPage<totalPages)html+=`<button class="pg-btn" onclick="renderList(${currentPage+1})">&gt;</button>`;
+  for(let i=s;i<=e;i++) html+=`<button class="pg-btn ${i===currentPage?'active':''}" onclick="renderList(${i})">${i}</button>`;
+  if(currentPage<totalPages) html+=`<button class="pg-btn" onclick="renderList(${currentPage+1})">&gt;</button>`;
   c.innerHTML=html;
 }
 
+// --- Search ---
 function doSearch(){
-  const q=(el('search').value||'').trim().toLowerCase();const top=el('topMsg');top.classList.add('hidden');if(!q){filteredPosts=fullPosts.slice();renderList(1);return;}
+  const q=(el('search').value||'').trim().toLowerCase();const top=el('topMsg');top.classList.add('hidden');
+  if(!q){filteredPosts=fullPosts.slice();pageCache={};renderList(1);return;}
   let res=fullPosts.filter(p=>((p.CODE||'')+(p.Actress||'')+(p.Tags||'')).toLowerCase().includes(q));
   if(res.length===0){const tokens=q.split(/\s+/).filter(Boolean);res=fullPosts.filter(p=>{const hay=((p.CODE||'')+' '+(p.Actress||'')+' '+(p.Tags||'')).toLowerCase();return tokens.every(t=>hay.includes(t))})}
-  if(res.length===0){filteredPosts=fullPosts.slice();top.textContent=`No exact matches for "${q}", showing latest.`;top.classList.remove('hidden');renderList(1);return;}
-  filteredPosts=res.slice();renderList(1)
+  if(res.length===0){filteredPosts=fullPosts.slice();top.textContent=`No exact matches for "${q}", showing latest.`;top.classList.remove('hidden');pageCache={};renderList(1);return;}
+  filteredPosts=res.slice();pageCache={};renderList(1);
 }
 
+// --- Detail ---
 function openDetail(code){
   const post=fullPosts.find(p=>(p.CODE||'').toUpperCase()===code.toUpperCase());if(!post)return;
   el('detailView').innerHTML=buildDetailHTML(post);
@@ -189,6 +192,7 @@ function openDetail(code){
   el('detailView').classList.remove('hidden');
   window.scrollTo({top:0,behavior:'smooth'});
   history.pushState({view:'detail', code:code}, '', `#${code}`);
+  updateMetaForDetail(post);
 }
 
 function buildDetailHTML(p){
@@ -198,7 +202,7 @@ function buildDetailHTML(p){
   const actressHTML=(actress||'').split(',').map(a=>`<span onclick="searchTag('${escapeJS(a.trim())}')">${escapeHTML(a.trim())}</span>`).join(' ');
   const related=fullPosts.filter(x=>(x.CODE||'')!==code).slice(0,6);
   const relatedHTML=related.map(r=>`<div class="related-item" onclick="openDetail('${escapeJS(r.CODE)}')">
-    <div class="thumb"><img src="${safeImg(r['LINK FOTO'])}" onerror="this.src='${PLACEHOLDER}'"></div>
+    <div class="thumb"><img src="${safeImg(r['LINK FOTO'])}" onerror="this.src='${PLACEHOLDER}'" loading="lazy"></div>
     <div class="r-title">${escapeHTML(r.CODE+' '+(r.Actress||''))}</div></div>`).join('');
   return `<div class="detail-wrap">
     <div class="breadcrumb"><a href="javascript:resetToHome()">Home</a> › ${escapeHTML(actress)} › ${escapeHTML(code)}</div>
@@ -214,18 +218,36 @@ function buildDetailHTML(p){
   </div>`;
 }
 
-function searchTag(tag){el('search').value=tag;doSearch()}
-function resetToHome(){el('search').value='';el('topMsg').classList.add('hidden');filteredPosts=fullPosts.slice();renderList(1)}
+// --- Meta update for SEO ---
+function updateMetaForDetail(post){
+  const title = `${post.CODE || ''} ${post.Actress || ''} - JAVTerabox`;
+  const desc = (post.Tags || 'Watch JAV movies online').split(',').join(', ');
+  const img = safeImg(post['LINK FOTO']);
+  const url = `https://javterabox.fun/#${post.CODE}`;
 
+  document.title = title;
+  document.querySelector('meta[name="description"]').setAttribute('content', desc);
+  document.querySelector('meta[property="og:title"]').setAttribute('content', title);
+  document.querySelector('meta[property="og:description"]').setAttribute('content', desc);
+  document.querySelector('meta[property="og:image"]').setAttribute('content', img);
+  document.querySelector('meta[property="og:url"]').setAttribute('content', url);
+  document.querySelector('meta[name="twitter:title"]').setAttribute('content', title);
+  document.querySelector('meta[name="twitter:description"]').setAttribute('content', desc);
+  document.querySelector('meta[name="twitter:image"]').setAttribute('content', img);
+}
+
+// --- Helpers ---
+function searchTag(tag){el('search').value=tag;doSearch()}
+function resetToHome(){el('search').value='';el('topMsg').classList.add('hidden');filteredPosts=fullPosts.slice();pageCache={};renderList(1)}
 function showPopupIfNeeded(){if(localStorage.getItem('popupClosed'))return;el('popup').classList.remove('hidden')}
 el('popupClose').addEventListener('click',()=>{el('popup').classList.add('hidden');localStorage.setItem('popupClosed','1')})
 el('searchBtn').addEventListener('click',doSearch)
 el('search').addEventListener('keypress',e=>{if(e.key==='Enter')doSearch()})
-
 function escapeJS(s){return(s||'').replace(/'/g,"\\'").replace(/"/g,'\\"')}
 function escapeHTML(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function escapeAttr(s){return(s||'').replace(/"/g,'&quot;").replace(/'/g,"&#039;")}
+function escapeAttr(s){return(s||'').replace(/"/g,'&quot;').replace(/'/g,"&#039;")}
 
+// --- History / Back ---
 window.addEventListener('popstate', (event) => {
   if(event.state){
     if(event.state.view==='detail'){openDetail(event.state.code);}
@@ -233,11 +255,14 @@ window.addEventListener('popstate', (event) => {
   } else {resetToHome();}
 });
 
+// --- Scroll top button ---
+window.addEventListener('scroll', toggleScrollTopBtn);
 function toggleScrollTopBtn(){
   const btn = el('scrollTopBtn');
-  if(window.scrollY>300) btn.style.display='block'; else btn.style.display='none';
+  btn.style.display = (window.scrollY>300) ? 'block' : 'none';
 }
 
+// --- Init ---
 init();
 </script>
 
