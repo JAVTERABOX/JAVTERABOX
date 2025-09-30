@@ -6,7 +6,6 @@
 <title>JAVTerabox</title>
 <link rel="icon" href="https://cdn-1.webcatalog.io/catalog/terabox/terabox-icon-filled-256.png" type="image/png">
 
-<!-- Default Meta -->
 <meta name="description" content="JAVTerabox – Watch and Download JAV movies.">
 <meta property="og:title" content="JAVTerabox">
 <meta property="og:description" content="Watch and Download JAV movies.">
@@ -20,7 +19,8 @@
 
 <style>
 :root{
---red:#d32f2f;--bg:#0f0f10;--card:#181818;--muted:#bdbdbd;--text:#f5f5f5;}
+  --red:#d32f2f;--bg:#0f0f10;--card:#181818;--muted:#bdbdbd;--text:#f5f5f5;
+}
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:var(--text)}
 header{position:sticky;top:0;background:var(--red);padding:12px 18px;display:flex;align-items:center;gap:16px;z-index:1200}
@@ -34,8 +34,8 @@ main{padding:18px;max-width:1300px;margin:0 auto}
 @media(min-width:992px) and (max-width:1199px){.grid{grid-template-columns:repeat(4,1fr);}}
 @media(min-width:768px) and (max-width:991px){.grid{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:767px){.grid{grid-template-columns:repeat(2,1fr);}}
-.card{background:var(--card);border-radius:12px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:.2s}
-.card:hover{transform:translateY(-6px);box-shadow:0 8px 30px rgba(0,0,0,.6)}
+.card{background:var(--card);border-radius:12px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:.3s;opacity:0;}
+.card.loaded{opacity:1;transition:.3s;}
 .thumb{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#222}
 .thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .3s}
 .title{padding:10px 12px;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -56,7 +56,8 @@ main{padding:18px;max-width:1300px;margin:0 auto}
 .related-title{font-size:18px;margin:0 0 12px;color:var(--text)}
 .related-grid{display:grid;gap:12px;grid-template-columns:repeat(3,1fr);}
 @media(max-width:767px){.related-grid{grid-template-columns:repeat(2,1fr);}}
-.related-item{cursor:pointer}
+.related-item{cursor:pointer;opacity:0;transition:.3s;}
+.related-item.loaded{opacity:1;}
 .related-item .thumb{aspect-ratio:16/9;border-radius:8px;overflow:hidden}
 .related-item img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .3s}
 .related-item .r-title{font-size:13px;margin-top:6px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;color:var(--text)}
@@ -68,6 +69,13 @@ main{padding:18px;max-width:1300px;margin:0 auto}
 .hidden{display:none}
 #spinner{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5000;display:none;}
 #scrollTopBtn{position:fixed;bottom:80px;right:18px;width:40px;height:40px;border-radius:50%;background:var(--red);color:#fff;font-weight:700;border:none;cursor:pointer;display:none;z-index:4000;}
+/* Skeleton loader */
+.skeleton{background:#333;animation:skeletonPulse 1.2s infinite ease-in-out;border-radius:8px;}
+@keyframes skeletonPulse{
+  0%{opacity:1;}
+  50%{opacity:.4;}
+  100%{opacity:1;}
+}
 </style>
 </head>
 <body>
@@ -106,6 +114,7 @@ let fullPosts=[],filteredPosts=[],currentPage=1,pageCache={};
 function el(id){return document.getElementById(id);}
 function safeImg(src){return src||PLACEHOLDER;}
 
+// --- Init ---
 async function init(){
   el('spinner').style.display='block';
   try{
@@ -115,9 +124,8 @@ async function init(){
     filteredPosts=fullPosts.slice();
     const hash=window.location.hash.slice(1);
     if(hash){
-      if(hash.startsWith('page')){
-        const p=parseInt(hash.replace('page',''))||1; renderList(p);
-      } else openDetail(hash);
+      if(hash.startsWith('page')) renderList(parseInt(hash.replace('page',''))||1);
+      else openDetail(hash);
     } else renderList(1);
   } catch(e){
     el('grid').innerHTML='<div class="msg">Failed to load data.</div>'
@@ -127,7 +135,7 @@ async function init(){
   }
 }
 
-// --- Render List with preload next page ---
+// --- Render List with skeleton loader & lazy load ---
 function renderList(page=1){
   currentPage=Math.max(1,Math.floor(page));
   const total=filteredPosts.length,totalPages=Math.max(1,Math.ceil(total/PER_PAGE));
@@ -142,24 +150,27 @@ function renderList(page=1){
     el('grid').innerHTML='<div class="msg">No results.</div>';el('pagination').innerHTML='';return;
   }
 
-  el('grid').innerHTML=pageItems.map(p=>{
-    const img=safeImg(p['LINK FOTO']);const code=(p.CODE||'').trim();const actress=(p.Actress||'').trim();
-    return `<div class="card" onclick="openDetail('${escapeJS(code)}')">
-      <div class="thumb"><img src="${img}" loading="lazy" onerror="this.src='${PLACEHOLDER}'" alt="${escapeHTML(code+' '+actress)}"/></div>
-      <div class="title">${escapeHTML(code+' '+actress)}</div></div>`;
-  }).join('');
+  // Skeleton placeholders
+  el('grid').innerHTML=pageItems.map(_=>`<div class="card skeleton" style="height:180px;"></div>`).join('');
+  window.requestAnimationFrame(()=>{ // replace skeleton with actual images
+    el('grid').innerHTML=pageItems.map(p=>{
+      const img=safeImg(p['LINK FOTO']);const code=(p.CODE||'').trim();const actress=(p.Actress||'').trim();
+      return `<div class="card" onclick="openDetail('${escapeJS(code)}')">
+        <div class="thumb"><img src="${img}" loading="lazy" onerror="this.src='${PLACEHOLDER}'" alt="${escapeHTML(code+' '+actress)}"/></div>
+        <div class="title">${escapeHTML(code+' '+actress)}</div></div>`;
+    }).join('');
+    document.querySelectorAll('.card img').forEach(img=>img.onload=()=>img.parentElement.parentElement.classList.add('loaded'));
+  });
 
   renderPagination(totalPages);
   el('listView').classList.remove('hidden');el('detailView').classList.add('hidden');window.scrollTo({top:0,behavior:'smooth'});
   history.replaceState({view:'list',page:currentPage}, '', `#page${currentPage}`);
 
-  // Preload next page thumbnails
+  // Preload next page (batch 1–2 images)
   if(currentPage<totalPages){
     const nextStart=currentPage*PER_PAGE;
     const nextItems=filteredPosts.slice(nextStart,nextStart+PER_PAGE);
-    nextItems.forEach(p=>{
-      const img=new Image(); img.src=safeImg(p['LINK FOTO']);
-    });
+    nextItems.slice(0,2).forEach(p=>{ const img=new Image(); img.src=safeImg(p['LINK FOTO']); });
   }
 }
 
@@ -188,10 +199,8 @@ function doSearch(){
 function openDetail(code){
   const post=fullPosts.find(p=>(p.CODE||'').toUpperCase()===code.toUpperCase());if(!post)return;
   el('detailView').innerHTML=buildDetailHTML(post);
-  el('listView').classList.add('hidden');
-  el('detailView').classList.remove('hidden');
-  window.scrollTo({top:0,behavior:'smooth'});
-  history.pushState({view:'detail', code:code}, '', `#${code}`);
+  el('listView').classList.add('hidden');el('detailView').classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});history.pushState({view:'detail', code:code}, '', `#${code}`);
   updateMetaForDetail(post);
 }
 
@@ -204,6 +213,7 @@ function buildDetailHTML(p){
   const relatedHTML=related.map(r=>`<div class="related-item" onclick="openDetail('${escapeJS(r.CODE)}')">
     <div class="thumb"><img src="${safeImg(r['LINK FOTO'])}" onerror="this.src='${PLACEHOLDER}'" loading="lazy"></div>
     <div class="r-title">${escapeHTML(r.CODE+' '+(r.Actress||''))}</div></div>`).join('');
+  setTimeout(()=>document.querySelectorAll('.related-item').forEach(el=>el.classList.add('loaded')),100);
   return `<div class="detail-wrap">
     <div class="breadcrumb"><a href="javascript:resetToHome()">Home</a> › ${escapeHTML(actress)} › ${escapeHTML(code)}</div>
     <h2 class="detail-title">${escapeHTML(code+' '+actress)}</h2>
@@ -224,7 +234,6 @@ function updateMetaForDetail(post){
   const desc = (post.Tags || 'Watch JAV movies online').split(',').join(', ');
   const img = safeImg(post['LINK FOTO']);
   const url = `https://javterabox.fun/#${post.CODE}`;
-
   document.title = title;
   document.querySelector('meta[name="description"]').setAttribute('content', desc);
   document.querySelector('meta[property="og:title"]').setAttribute('content', title);
