@@ -1,6 +1,7 @@
-const OPEN_SHEET='https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1';
-const PER_PAGE=20, MAX_PAGE_BUTTONS=5, PLACEHOLDER='https://via.placeholder.com/640x360?text=No+Image';
-let fullPosts=[], filteredPosts=[], currentPage=1;
+const OPEN_SHEET = 'https://opensheet.elk.sh/15m33t4659Iq9unQ7_Gi-lOPe6Jj9T7wzAA060HxyFRs/Sheet1';
+const PER_PAGE = 20, MAX_PAGE_BUTTONS = 5;
+const PLACEHOLDER = 'https://via.placeholder.com/640x360?text=No+Image';
+let fullPosts = [], filteredPosts = [], currentPage = 1;
 
 function el(id){ return document.getElementById(id); }
 function safeImg(src){ return src || PLACEHOLDER; }
@@ -12,13 +13,14 @@ async function init(){
     console.log("TOTAL JSON ROWS:", json.length);
     console.log("HEADERS:", Object.keys(json[0]||{}));
 
-    const raw = json.filter(r => (r['undefined']||r.Trigger||'').toString().toUpperCase().startsWith('FIX'));
+    // Pakai kolom L untuk filter FIX
+    const raw = json.filter(r => (r['L'] || '').toString().toUpperCase().startsWith('FIX'));
     console.log("FILTERED FIX ROWS:", raw.length);
 
     fullPosts = raw.reverse();
     filteredPosts = fullPosts.slice();
     renderList(1);
-    setTimeout(showPopupIfNeeded,1200);
+    setTimeout(showPopupIfNeeded, 1200);
     handleHash();
   } catch(e){
     console.error("Failed to fetch OpenSheet:", e);
@@ -28,17 +30,20 @@ async function init(){
 
 function renderList(page=1){
   currentPage = Math.max(1, Math.floor(page));
-  const total = filteredPosts.length, totalPages = Math.max(1, Math.ceil(total/PER_PAGE));
+  const total = filteredPosts.length;
+  const totalPages = Math.max(1, Math.ceil(total/PER_PAGE));
   if(currentPage > totalPages) currentPage = totalPages;
-  const start = (currentPage-1)*PER_PAGE, pageItems = filteredPosts.slice(start,start+PER_PAGE);
-  if(pageItems.length===0){
-    el('grid').innerHTML='<div class="msg">No results.</div>';
-    el('pagination').innerHTML='';
+  const start = (currentPage-1)*PER_PAGE;
+  const pageItems = filteredPosts.slice(start, start+PER_PAGE);
+
+  if(pageItems.length === 0){
+    el('grid').innerHTML = '<div class="msg">No results.</div>';
+    el('pagination').innerHTML = '';
     return;
   }
 
-  el('grid').innerHTML = pageItems.map(p => {
-    const img = safeImg(p['LINK FOTO']); // ganti 'LINK FOTO' ke 'N' kalau mau kolom N
+  el('grid').innerHTML = pageItems.map(p=>{
+    const img = safeImg(p['LINK FOTO']); // kolom LINK FOTO tetap
     const code = (p.CODE||'').trim();
     const actress = (p.Actress||'').trim();
     return `<div class="card" onclick="openDetail('${escapeJS(code)}')">
@@ -55,14 +60,14 @@ function renderList(page=1){
 
 function renderPagination(totalPages){
   const c = el('pagination');
-  if(totalPages <= 1){ c.innerHTML=''; return; }
+  if(totalPages <= 1){ c.innerHTML = ''; return; }
 
-  let s = currentPage - Math.floor(MAX_PAGE_BUTTONS/2); if(s<1)s=1;
-  let e = s + MAX_PAGE_BUTTONS-1; if(e>totalPages){ e=totalPages; s=Math.max(1,e-MAX_PAGE_BUTTONS+1);}
-  let html=''; 
-  if(currentPage>1) html += `<button class="pg-btn" onclick="renderList(${currentPage-1})">&lt;</button>`;
+  let s = currentPage - Math.floor(MAX_PAGE_BUTTONS/2); if(s<1) s=1;
+  let e = s + MAX_PAGE_BUTTONS - 1; if(e > totalPages){ e = totalPages; s = Math.max(1,e-MAX_PAGE_BUTTONS+1);}
+  let html = '';
+  if(currentPage > 1) html += `<button class="pg-btn" onclick="renderList(${currentPage-1})">&lt;</button>`;
   for(let i=s;i<=e;i++) html += `<button class="pg-btn ${i===currentPage?'active':''}" onclick="renderList(${i})">${i}</button>`;
-  if(currentPage<totalPages) html += `<button class="pg-btn" onclick="renderList(${currentPage+1})">&gt;</button>`;
+  if(currentPage < totalPages) html += `<button class="pg-btn" onclick="renderList(${currentPage+1})">&gt;</button>`;
   c.innerHTML = html;
 }
 
@@ -71,26 +76,27 @@ function doSearch(){
   const top = el('topMsg'); top.classList.add('hidden');
   if(!q){ filteredPosts = fullPosts.slice(); renderList(1); return; }
 
-  let res = fullPosts.filter(p=>((p.CODE||'')+(p.Actress||'')+(p.Tags||'')).toLowerCase().includes(q));
-  if(res.length===0){
+  let res = fullPosts.filter(p => ((p.CODE||'')+(p.Actress||'')+(p.Tags||'')).toLowerCase().includes(q));
+  if(res.length === 0){
     const tokens = q.split(/\s+/).filter(Boolean);
-    res = fullPosts.filter(p=>{
+    res = fullPosts.filter(p => {
       const hay = ((p.CODE||'')+' '+(p.Actress||'')+' '+(p.Tags||'')).toLowerCase();
-      return tokens.every(t=>hay.includes(t));
+      return tokens.every(t => hay.includes(t));
     })
   }
-  if(res.length===0){
+  if(res.length === 0){
     filteredPosts = fullPosts.slice();
-    top.textContent=`No exact matches for "${q}", showing latest.`;
+    top.textContent = `No exact matches for "${q}", showing latest.`;
     top.classList.remove('hidden');
     renderList(1);
     return;
   }
+
   filteredPosts = res.slice(); renderList(1);
 }
 
 function openDetail(code){
-  const post = fullPosts.find(p=>(p.CODE||'').toUpperCase()===code.toUpperCase());
+  const post = fullPosts.find(p=>(p.CODE||'').toUpperCase() === code.toUpperCase());
   if(!post) return;
   window.location.hash = code;
   el('detailView').innerHTML = buildDetailHTML(post);
@@ -101,15 +107,16 @@ function openDetail(code){
 
 function buildDetailHTML(p){
   const code = p.CODE||'', actress = p.Actress||'', tags = (p.Tags||'').split(',').map(s=>s.trim()).filter(Boolean);
-  const img = safeImg(p['LINK FOTO']); // ganti 'LINK FOTO' ke 'N' kalau mau kolom N
+  const img = safeImg(p['LINK FOTO']); // bisa diganti p['N'] kalau mau kolom N
   const link = escapeAttr(p.LINK||'#');
   const tagsHTML = tags.map(t=>`<span onclick="searchTag('${escapeJS(t)}')">${escapeHTML(t)}</span>`).join(' ');
   const actressHTML = (actress||'').split(',').map(a=>`<span onclick="searchTag('${escapeJS(a.trim())}')">${escapeHTML(a.trim())}</span>`).join('');
-  const related = fullPosts.filter(x=>(x.CODE||'')!==code).slice(0,6);
-  const relatedHTML = related.map(r=>`<div class="related-item" onclick="openDetail('${escapeJS(r.CODE)}')">
+  const related = fullPosts.filter(x=>(x.CODE||'') !== code).slice(0,6);
+  const relatedHTML = related.map(r => `<div class="related-item" onclick="openDetail('${escapeJS(r.CODE)}')">
       <div class="thumb"><img src="${safeImg(r['LINK FOTO'])}" onerror="this.src='${PLACEHOLDER}'"></div>
       <div class="r-title">${escapeHTML(r.CODE+' '+(r.Actress||''))}</div>
     </div>`).join('');
+
   return `<div class="detail-wrap">
     <div class="breadcrumb"><a href="javascript:resetToHome()">Home</a> › ${escapeHTML(actress)} › ${escapeHTML(code)}</div>
     <h2 class="detail-title">${escapeHTML(code+' '+actress)}</h2>
@@ -127,7 +134,7 @@ function buildDetailHTML(p){
 }
 
 function searchTag(tag){ el('search').value = tag; doSearch(); }
-function resetToHome(){ el('search').value=''; el('topMsg').classList.add('hidden'); filteredPosts=fullPosts.slice(); renderList(1); window.location.hash=''; }
+function resetToHome(){ el('search').value=''; el('topMsg').classList.add('hidden'); filteredPosts = fullPosts.slice(); renderList(1); window.location.hash=''; }
 function showPopupIfNeeded(){ if(localStorage.getItem('popupClosed')) return; el('popup').classList.remove('hidden'); }
 
 function handleHash(){
