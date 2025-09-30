@@ -19,8 +19,7 @@
 <meta name="twitter:image" content="https://via.placeholder.com/640x360?text=No+Image">
 
 <style>
-:root{
---red:#d32f2f;--bg:#0f0f10;--card:#181818;--muted:#bdbdbd;--text:#f5f5f5;}
+:root{--red:#d32f2f;--bg:#0f0f10;--card:#181818;--muted:#bdbdbd;--text:#f5f5f5;}
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:var(--text)}
 header{position:sticky;top:0;background:var(--red);padding:12px 18px;display:flex;align-items:center;gap:16px;z-index:1200}
@@ -104,7 +103,17 @@ const PER_PAGE=20,MAX_PAGE_BUTTONS=5,PLACEHOLDER='https://via.placeholder.com/64
 let fullPosts=[],filteredPosts=[],currentPage=1,pageCache={};
 
 function el(id){return document.getElementById(id);}
-function safeImg(src){return src||PLACEHOLDER;}
+
+// --- CDN Proxy via Statically ---
+function safeImg(src){
+  if(!src) return PLACEHOLDER;
+  try {
+    const url = new URL(src);
+    return `https://cdn.statically.io/img/${url.hostname}${url.pathname}`;
+  } catch(e){
+    return src || PLACEHOLDER;
+  }
+}
 
 async function init(){
   el('spinner').style.display='block';
@@ -127,7 +136,7 @@ async function init(){
   }
 }
 
-// --- Render List with preload next page ---
+// --- Render List ---
 function renderList(page=1){
   currentPage=Math.max(1,Math.floor(page));
   const total=filteredPosts.length,totalPages=Math.max(1,Math.ceil(total/PER_PAGE));
@@ -152,15 +161,6 @@ function renderList(page=1){
   renderPagination(totalPages);
   el('listView').classList.remove('hidden');el('detailView').classList.add('hidden');window.scrollTo({top:0,behavior:'smooth'});
   history.replaceState({view:'list',page:currentPage}, '', `#page${currentPage}`);
-
-  // Preload next page thumbnails
-  if(currentPage<totalPages){
-    const nextStart=currentPage*PER_PAGE;
-    const nextItems=filteredPosts.slice(nextStart,nextStart+PER_PAGE);
-    nextItems.forEach(p=>{
-      const img=new Image(); img.src=safeImg(p['LINK FOTO']);
-    });
-  }
 }
 
 // --- Pagination ---
@@ -218,7 +218,7 @@ function buildDetailHTML(p){
   </div>`;
 }
 
-// --- Meta update for SEO ---
+// --- Meta update ---
 function updateMetaForDetail(post){
   const title = `${post.CODE || ''} ${post.Actress || ''} - JAVTerabox`;
   const desc = (post.Tags || 'Watch JAV movies online').split(',').join(', ');
@@ -246,25 +246,9 @@ el('search').addEventListener('keypress',e=>{if(e.key==='Enter')doSearch()})
 function escapeJS(s){return(s||'').replace(/'/g,"\\'").replace(/"/g,'\\"')}
 function escapeHTML(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function escapeAttr(s){return(s||'').replace(/"/g,'&quot;').replace(/'/g,"&#039;")}
-
-// --- History / Back ---
-window.addEventListener('popstate', (event) => {
-  if(event.state){
-    if(event.state.view==='detail'){openDetail(event.state.code);}
-    else if(event.state.view==='list'){renderList(event.state.page||1);}
-  } else {resetToHome();}
-});
-
-// --- Scroll top button ---
-window.addEventListener('scroll', toggleScrollTopBtn);
-function toggleScrollTopBtn(){
-  const btn = el('scrollTopBtn');
-  btn.style.display = (window.scrollY>300) ? 'block' : 'none';
-}
-
-// --- Init ---
-init();
+window.addEventListener('scroll',()=>{el('scrollTopBtn').style.display=window.scrollY>400?'block':'none'})
+window.addEventListener('popstate',e=>{if(e.state){if(e.state.view==='list')renderList(e.state.page||1);else if(e.state.view==='detail')openDetail(e.state.code)}else resetToHome()})
+window.addEventListener('load',init);
 </script>
-
 </body>
 </html>
