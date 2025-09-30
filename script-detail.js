@@ -3,13 +3,13 @@ const urlParams = new URLSearchParams(window.location.search);
 const codeParam = urlParams.get('code');
 const detailContainer = document.getElementById('detail-post');
 
-async function fetchDetail(){
+async function fetchDetail() {
   detailContainer.innerHTML = '<p>Memuat data...</p>';
-  try{
+  try {
     const response = await fetch(SHEET_URL);
     if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
-    const post = data.find(p=>(p.CODE||'')===codeParam);
+    const post = data.find(p => (p.CODE||'') === codeParam);
     if(!post){detailContainer.innerHTML='<p>Post not found.</p>';return;}
 
     const kode = post.CODE||'Unknown';
@@ -17,7 +17,7 @@ async function fetchDetail(){
     const actor = post.Actor||'-';
     const studio = post.Studio||'-';
     const tags = post.Tags||'';
-    const image = post["LINK FOTO"]||'';
+    const image = post['N']||''; // kolom N untuk gambar
     const download = post.LINK||'#';
 
     detailContainer.innerHTML = `
@@ -36,15 +36,15 @@ async function fetchDetail(){
     `;
 
     // Related posts
-    const related = data.filter(p=>(p.Tags||'').split(',').some(t=>tags.includes(t)) && p.CODE!==kode).slice(0,8);
+    const related = data.filter(p => (p.Tags||'').split(',').some(t=>tags.includes(t)) && p.CODE!==kode).slice(0,8);
     const recContainer = document.getElementById('recommendations');
     related.forEach(r=>{
       const rec = document.createElement('div');
       rec.classList.add('rec-post');
-      rec.innerHTML = `<a href="detail.html?code=${r.CODE}"><img src="${r["LINK FOTO"]}" alt="${r.CODE}"><span>${r.CODE} ${r.Actress}</span></a>`;
+      rec.innerHTML = `<a href="detail.html?code=${r.CODE}"><img src="${r['N']}" alt="${r.CODE}"><span>${r.CODE} ${r.Actress}</span></a>`;
       recContainer.appendChild(rec);
     });
-  }catch(err){
+  } catch(err) {
     detailContainer.innerHTML = `<p style="color:red;">Gagal memuat data.<br>${err}</p>`;
   }
 }
@@ -52,7 +52,7 @@ async function fetchDetail(){
 fetchDetail();
 
 // Popup Telegram
-const popup=document.getElementById('popup');
-const closeBtn=document.getElementById('popup-close');
+const popup = document.getElementById('popup');
+const closeBtn = document.getElementById('popup-close');
 window.addEventListener('load',()=>popup.style.display='block');
 closeBtn.addEventListener('click',()=>popup.style.display='none');
